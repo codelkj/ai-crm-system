@@ -2,202 +2,58 @@
  * Contact Service
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { Contact, CreateContactDTO } from '../types/crm.types';
 import { AppError } from '../../../shared/middleware/error-handler';
-import { CompanyService } from './company.service';
-
-// Mock contact database
-const mockContacts: Contact[] = [
-  {
-    id: uuidv4(),
-    company_id: '',
-    first_name: 'John',
-    last_name: 'Smith',
-    email: 'john.smith@acme.com',
-    phone: '+1-555-0101',
-    position: 'CEO',
-    is_primary: true,
-    created_at: new Date('2024-01-15'),
-    updated_at: new Date('2024-01-15'),
-  },
-  {
-    id: uuidv4(),
-    company_id: '',
-    first_name: 'Sarah',
-    last_name: 'Johnson',
-    email: 'sarah.johnson@acme.com',
-    phone: '+1-555-0102',
-    position: 'CTO',
-    is_primary: false,
-    created_at: new Date('2024-01-16'),
-    updated_at: new Date('2024-01-16'),
-  },
-  {
-    id: uuidv4(),
-    company_id: '',
-    first_name: 'Michael',
-    last_name: 'Brown',
-    email: 'michael.brown@techstart.io',
-    phone: '+1-555-0201',
-    position: 'VP of Engineering',
-    is_primary: true,
-    created_at: new Date('2024-01-20'),
-    updated_at: new Date('2024-01-20'),
-  },
-  {
-    id: uuidv4(),
-    company_id: '',
-    first_name: 'Emily',
-    last_name: 'Davis',
-    email: 'emily.davis@techstart.io',
-    phone: '+1-555-0202',
-    position: 'Product Manager',
-    is_primary: false,
-    created_at: new Date('2024-01-21'),
-    updated_at: new Date('2024-01-21'),
-  },
-  {
-    id: uuidv4(),
-    company_id: '',
-    first_name: 'David',
-    last_name: 'Wilson',
-    email: 'david.wilson@globalsolutions.com',
-    phone: '+1-555-0301',
-    position: 'Managing Director',
-    is_primary: true,
-    created_at: new Date('2024-02-01'),
-    updated_at: new Date('2024-02-01'),
-  },
-  {
-    id: uuidv4(),
-    company_id: '',
-    first_name: 'Jennifer',
-    last_name: 'Martinez',
-    email: 'jennifer.martinez@globalsolutions.com',
-    phone: '+1-555-0302',
-    position: 'Senior Consultant',
-    is_primary: false,
-    created_at: new Date('2024-02-02'),
-    updated_at: new Date('2024-02-02'),
-  },
-  {
-    id: uuidv4(),
-    company_id: '',
-    first_name: 'Robert',
-    last_name: 'Anderson',
-    email: 'robert.anderson@acme.com',
-    phone: '+1-555-0103',
-    position: 'VP of Sales',
-    is_primary: false,
-    created_at: new Date('2024-01-17'),
-    updated_at: new Date('2024-01-17'),
-  },
-  {
-    id: uuidv4(),
-    company_id: '',
-    first_name: 'Lisa',
-    last_name: 'Taylor',
-    email: 'lisa.taylor@techstart.io',
-    phone: '+1-555-0203',
-    position: 'Marketing Director',
-    is_primary: false,
-    created_at: new Date('2024-01-22'),
-    updated_at: new Date('2024-01-22'),
-  },
-  {
-    id: uuidv4(),
-    company_id: '',
-    first_name: 'James',
-    last_name: 'Thomas',
-    email: 'james.thomas@globalsolutions.com',
-    phone: '+1-555-0303',
-    position: 'Business Analyst',
-    is_primary: false,
-    created_at: new Date('2024-02-03'),
-    updated_at: new Date('2024-02-03'),
-  },
-  {
-    id: uuidv4(),
-    company_id: '',
-    first_name: 'Patricia',
-    last_name: 'Jackson',
-    email: 'patricia.jackson@acme.com',
-    phone: '+1-555-0104',
-    position: 'CFO',
-    is_primary: false,
-    created_at: new Date('2024-01-18'),
-    updated_at: new Date('2024-01-18'),
-  },
-];
-
-// Initialize contacts with company IDs
-let initialized = false;
-async function initializeContacts() {
-  if (initialized) return;
-
-  try {
-    const companies = await CompanyService.getAll(1, 10);
-    if (companies.data.length >= 3) {
-      // Acme Corporation contacts (indices 0, 1, 6, 9)
-      mockContacts[0].company_id = companies.data[0].id;
-      mockContacts[1].company_id = companies.data[0].id;
-      mockContacts[6].company_id = companies.data[0].id;
-      mockContacts[9].company_id = companies.data[0].id;
-
-      // TechStart Inc contacts (indices 2, 3, 7)
-      mockContacts[2].company_id = companies.data[1].id;
-      mockContacts[3].company_id = companies.data[1].id;
-      mockContacts[7].company_id = companies.data[1].id;
-
-      // Global Solutions LLC contacts (indices 4, 5, 8)
-      mockContacts[4].company_id = companies.data[2].id;
-      mockContacts[5].company_id = companies.data[2].id;
-      mockContacts[8].company_id = companies.data[2].id;
-    }
-    initialized = true;
-  } catch (error) {
-    console.error('Error initializing contacts:', error);
-  }
-}
+import { database as pool } from '../../../config';
 
 export class ContactService {
   /**
    * Get all contacts with pagination and filtering
    */
-  static async getAll(page = 1, limit = 20, company_id?: string, search?: string) {
-    await initializeContacts();
-    let filtered = [...mockContacts];
+  static async getAll(
+    page = 1,
+    limit = 20,
+    companyId?: string,
+    search?: string
+  ): Promise<{ data: Contact[]; meta: any }> {
+    const offset = (page - 1) * limit;
+    let query = 'SELECT * FROM contacts WHERE 1=1';
+    let countQuery = 'SELECT COUNT(*) FROM contacts WHERE 1=1';
+    const params: any[] = [];
+    let paramCount = 1;
 
     // Filter by company
-    if (company_id) {
-      filtered = filtered.filter((c) => c.company_id === company_id);
+    if (companyId) {
+      query += ` AND company_id = $${paramCount}`;
+      countQuery += ` AND company_id = $${paramCount}`;
+      params.push(companyId);
+      paramCount++;
     }
 
     // Search filter
     if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = filtered.filter(
-        (c) =>
-          c.first_name.toLowerCase().includes(searchLower) ||
-          c.last_name.toLowerCase().includes(searchLower) ||
-          c.email.toLowerCase().includes(searchLower) ||
-          c.position?.toLowerCase().includes(searchLower)
-      );
+      const searchPattern = `%${search}%`;
+      query += ` AND (first_name ILIKE $${paramCount} OR last_name ILIKE $${paramCount} OR email ILIKE $${paramCount})`;
+      countQuery += ` AND (first_name ILIKE $${paramCount} OR last_name ILIKE $${paramCount} OR email ILIKE $${paramCount})`;
+      params.push(searchPattern);
+      paramCount++;
     }
 
-    // Pagination
-    const start = (page - 1) * limit;
-    const end = start + limit;
-    const paginated = filtered.slice(start, end);
+    // Get total count
+    const countResult = await pool.query(countQuery, params);
+    const total = parseInt(countResult.rows[0].count);
+
+    // Get paginated results
+    query += ` ORDER BY created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+    const result = await pool.query(query, [...params, limit, offset]);
 
     return {
-      data: paginated,
+      data: result.rows,
       meta: {
         page,
         limit,
-        total: filtered.length,
-        totalPages: Math.ceil(filtered.length / limit),
+        total,
+        totalPages: Math.ceil(total / limit),
       },
     };
   }
@@ -206,88 +62,128 @@ export class ContactService {
    * Get contact by ID
    */
   static async getById(id: string): Promise<Contact> {
-    await initializeContacts();
-    const contact = mockContacts.find((c) => c.id === id);
-    if (!contact) {
+    const result = await pool.query(
+      `SELECT c.*,
+              co.name as company_name
+       FROM contacts c
+       LEFT JOIN companies co ON c.company_id = co.id
+       WHERE c.id = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
       throw new AppError(404, 'Contact not found', 'CONTACT_NOT_FOUND');
     }
-    return contact;
+
+    return result.rows[0];
   }
 
   /**
    * Create new contact
    */
   static async create(data: CreateContactDTO): Promise<Contact> {
-    await initializeContacts();
-
-    // Verify company exists
-    await CompanyService.getById(data.company_id);
-
-    // Check if email already exists
-    const existingContact = mockContacts.find((c) => c.email === data.email);
-    if (existingContact) {
-      throw new AppError(400, 'Contact with this email already exists', 'CONTACT_EXISTS');
+    // Verify company exists if provided
+    if (data.company_id) {
+      const companyCheck = await pool.query(
+        'SELECT id FROM companies WHERE id = $1',
+        [data.company_id]
+      );
+      if (companyCheck.rows.length === 0) {
+        throw new AppError(404, 'Company not found', 'COMPANY_NOT_FOUND');
+      }
     }
 
-    const newContact: Contact = {
-      id: uuidv4(),
-      company_id: data.company_id,
-      first_name: data.first_name,
-      last_name: data.last_name,
-      email: data.email,
-      phone: data.phone,
-      position: data.position,
-      is_primary: data.is_primary ?? false,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
+    const result = await pool.query(
+      `INSERT INTO contacts (
+        company_id, first_name, last_name, email, phone, position, is_primary
+      )
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [
+        data.company_id || null,
+        data.first_name,
+        data.last_name,
+        data.email,
+        data.phone || null,
+        data.position || null,
+        data.is_primary || false,
+      ]
+    );
 
-    mockContacts.push(newContact);
-    return newContact;
+    return result.rows[0];
   }
 
   /**
    * Update contact
    */
   static async update(id: string, data: Partial<CreateContactDTO>): Promise<Contact> {
-    await initializeContacts();
-    const index = mockContacts.findIndex((c) => c.id === id);
-    if (index === -1) {
-      throw new AppError(404, 'Contact not found', 'CONTACT_NOT_FOUND');
-    }
+    // First check if contact exists
+    await this.getById(id);
 
-    // If updating company_id, verify it exists
+    // Verify company exists if updating
     if (data.company_id) {
-      await CompanyService.getById(data.company_id);
-    }
-
-    // Check if email already exists (excluding current contact)
-    if (data.email) {
-      const existingContact = mockContacts.find((c) => c.email === data.email && c.id !== id);
-      if (existingContact) {
-        throw new AppError(400, 'Contact with this email already exists', 'CONTACT_EXISTS');
+      const companyCheck = await pool.query(
+        'SELECT id FROM companies WHERE id = $1',
+        [data.company_id]
+      );
+      if (companyCheck.rows.length === 0) {
+        throw new AppError(404, 'Company not found', 'COMPANY_NOT_FOUND');
       }
     }
 
-    mockContacts[index] = {
-      ...mockContacts[index],
-      ...data,
-      updated_at: new Date(),
-    };
+    const fields: string[] = [];
+    const values: any[] = [];
+    let paramCount = 1;
 
-    return mockContacts[index];
+    Object.entries(data).forEach(([key, value]) => {
+      fields.push(`${key} = $${paramCount}`);
+      values.push(value);
+      paramCount++;
+    });
+
+    if (fields.length === 0) {
+      throw new AppError(400, 'No fields to update', 'NO_UPDATE_FIELDS');
+    }
+
+    fields.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(id);
+
+    const result = await pool.query(
+      `UPDATE contacts
+       SET ${fields.join(', ')}
+       WHERE id = $${paramCount}
+       RETURNING *`,
+      values
+    );
+
+    return result.rows[0];
   }
 
   /**
    * Delete contact
    */
   static async delete(id: string): Promise<void> {
-    await initializeContacts();
-    const index = mockContacts.findIndex((c) => c.id === id);
-    if (index === -1) {
+    const result = await pool.query(
+      'DELETE FROM contacts WHERE id = $1 RETURNING id',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
       throw new AppError(404, 'Contact not found', 'CONTACT_NOT_FOUND');
     }
+  }
 
-    mockContacts.splice(index, 1);
+  /**
+   * Get contacts by company
+   */
+  static async getByCompanyId(companyId: string): Promise<Contact[]> {
+    const result = await pool.query(
+      `SELECT * FROM contacts
+       WHERE company_id = $1
+       ORDER BY is_primary DESC, created_at DESC`,
+      [companyId]
+    );
+
+    return result.rows;
   }
 }
