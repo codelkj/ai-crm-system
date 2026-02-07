@@ -34,7 +34,7 @@ const ProjectionChart: React.FC = () => {
 
     try {
       const response = await financialService.generateProjection({ months });
-      const projectionData = response.data.projection_data;
+      const projectionData = response.projection_data;
 
       // Format data for recharts
       const formattedData = projectionData.map((item: any) => ({
@@ -46,7 +46,8 @@ const ProjectionChart: React.FC = () => {
 
       setChartData(formattedData);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to generate projection');
+      console.error('Projection error:', err);
+      setError(err.response?.data?.error?.message || err.message || 'Failed to generate projection');
     } finally {
       setLoading(false);
     }

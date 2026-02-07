@@ -104,4 +104,15 @@ export const salesService = {
     const response = await api.put('/sales/stages/reorder', { stages });
     return response.data.data;
   },
+
+  // AI Insights
+  getPipelineInsights: async () => {
+    const response = await api.get('/sales/ai-insights/pipeline');
+    return response.data.data;
+  },
+
+  getDealProbability: async (dealId: string) => {
+    const response = await api.get(`/sales/ai-insights/deal/${dealId}/probability`);
+    return response.data.data;
+  },
 };

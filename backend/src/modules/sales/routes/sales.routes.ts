@@ -5,6 +5,7 @@
 import { Router } from 'express';
 import { DealController } from '../controllers/deal.controller';
 import { PipelineStageController } from '../controllers/stage.controller';
+import { SalesAIInsightsController } from '../controllers/ai-insights.controller';
 import {
   createDealValidator,
   updateDealValidator,
@@ -42,5 +43,9 @@ router.delete('/stages/:id', PipelineStageController.delete);
 
 // Special route for reordering stages
 router.put('/stages/reorder', reorderStagesValidator, PipelineStageController.reorder);
+
+// AI Insights Routes
+router.get('/ai-insights/pipeline', SalesAIInsightsController.analyzePipeline);
+router.get('/ai-insights/deal/:dealId/probability', SalesAIInsightsController.predictDealProbability);
 
 export default router;

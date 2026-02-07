@@ -6,6 +6,7 @@
 import { Router } from 'express';
 import { BankAccountController } from '../controllers/bank-account.controller';
 import { TransactionController } from '../controllers/transaction.controller';
+import { ProjectionController } from '../controllers/projection.controller';
 import {
   createBankAccountValidators,
   csvUploadValidators,
@@ -107,6 +108,25 @@ router.patch(
 router.get(
   '/categories',
   TransactionController.getCategories
+);
+
+// ============= Projection Routes =============
+/**
+ * POST /api/v1/financial/projections/generate
+ * Generate cash flow projection
+ */
+router.post(
+  '/projections/generate',
+  ProjectionController.generateProjection
+);
+
+/**
+ * GET /api/v1/financial/projections
+ * Get all saved projections
+ */
+router.get(
+  '/projections',
+  ProjectionController.getAll
 );
 
 export default router;

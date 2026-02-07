@@ -17,6 +17,7 @@ import crmRoutes from './modules/crm/routes/crm.routes';
 import salesRoutes from './modules/sales/routes/sales.routes';
 import legalRoutes from './modules/legal/routes/legal.routes';
 import financialRoutes from './modules/financial/routes/financial.routes';
+import aiAssistantRoutes from './modules/ai-assistant/routes/assistant.routes';
 
 const app = express();
 
@@ -51,7 +52,8 @@ app.get('/', (req, res) => {
       crm: '/api/v1/crm',
       sales: '/api/v1/sales',
       legal: '/api/v1/legal',
-      financial: '/api/v1/financial'
+      financial: '/api/v1/financial',
+      aiAssistant: '/api/v1/ai-assistant'
     },
     documentation: {
       swagger: '/api/v1/docs',
@@ -101,6 +103,7 @@ app.use('/api/v1/crm', crmRoutes);
 app.use('/api/v1/sales', salesRoutes);
 app.use('/api/v1/legal', legalRoutes);
 app.use('/api/v1/financial', financialRoutes);
+app.use('/api/v1/ai-assistant', aiAssistantRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

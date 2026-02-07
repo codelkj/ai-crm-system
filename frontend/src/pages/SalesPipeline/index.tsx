@@ -9,6 +9,7 @@ import Layout from '../../components/common/Layout';
 import Button from '../../components/common/Button';
 import Loading from '../../components/common/Loading';
 import KanbanBoard from '../../components/sales/KanbanBoard';
+import SalesAIInsights from '../../components/sales/SalesAIInsights';
 import DealForm from './DealForm';
 import { salesService } from '../../services/sales.service';
 import './SalesPipeline.css';
@@ -55,6 +56,9 @@ const SalesPipeline: React.FC = () => {
           </div>
           <Button onClick={() => setShowForm(true)}>Add Deal</Button>
         </div>
+
+        {/* AI Insights */}
+        <SalesAIInsights />
 
         {loading ? (
           <Loading message="Loading pipeline..." />

@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout } from '../../store/slices/authSlice';
+import AIAssistant from '../ai/AIAssistant';
 import './Layout.css';
 
 interface LayoutProps {
@@ -79,6 +80,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="main-content">
         <div className="content-wrapper">{children}</div>
       </main>
+
+      {/* AI Assistant - Global */}
+      <AIAssistant />
     </div>
   );
 };

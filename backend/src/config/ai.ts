@@ -20,6 +20,16 @@ export const AI_CONFIG = {
 /**
  * Call OpenAI API with error handling
  */
+/**
+ * Get OpenAI client instance
+ */
+export const getOpenAIClient = (): OpenAI | null => {
+  return openai;
+};
+
+/**
+ * Call OpenAI API with error handling
+ */
 export const callAI = async (prompt: string, options = {}) => {
   if (!openai) {
     throw new Error('OpenAI is not configured. Please set OPENAI_API_KEY environment variable.');

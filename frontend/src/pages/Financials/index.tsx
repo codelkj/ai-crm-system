@@ -13,6 +13,7 @@ import Loading from '../../components/common/Loading';
 import TransactionForm from './TransactionForm';
 import CSVUpload from './CSVUpload';
 import ProjectionChart from './ProjectionChart';
+import AIInsights from '../../components/financial/AIInsights';
 import { Transaction } from '../../services/financial.service';
 import { format } from 'date-fns';
 import './Financials.css';
@@ -73,7 +74,37 @@ const Financials: React.FC = () => {
     {
       key: 'category_id',
       label: 'Category',
-      render: (categoryId?: string) => getCategoryName(categoryId),
+      render: (categoryId?: string, row?: Transaction) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>{getCategoryName(categoryId)}</span>
+          {row?.ai_confidence && (
+            <span
+              style={{
+                display: 'inline-block',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontSize: '11px',
+                fontWeight: 600,
+                background:
+                  row.ai_confidence >= 0.9
+                    ? '#e8f5e9'
+                    : row.ai_confidence >= 0.8
+                    ? '#fff3e0'
+                    : '#ffebee',
+                color:
+                  row.ai_confidence >= 0.9
+                    ? '#2e7d32'
+                    : row.ai_confidence >= 0.8
+                    ? '#ef6c00'
+                    : '#c62828',
+              }}
+              title={`AI Confidence: ${(row.ai_confidence * 100).toFixed(0)}%`}
+            >
+              🤖 {(row.ai_confidence * 100).toFixed(0)}%
+            </span>
+          )}
+        </div>
+      ),
     },
     {
       key: 'type',
@@ -109,7 +140,9 @@ const Financials: React.FC = () => {
     },
   ];
 
-  const totalBalance = accounts.reduce((sum, acc) => sum + Number(acc.balance), 0);
+  // Calculate balance from all transactions (not just filtered)
+  const totalBalance = transactions
+    .reduce((sum, t) => sum + (t.type === 'credit' ? Number(t.amount) : -Number(t.amount)), 0);
   const totalIncome = filteredTransactions
     .filter((t) => t.type === 'credit')
     .reduce((sum, t) => sum + Number(t.amount), 0);
@@ -155,6 +188,9 @@ const Financials: React.FC = () => {
         </div>
 
         {showProjections && <ProjectionChart />}
+
+        {/* AI Insights */}
+        <AIInsights transactions={transactions} categories={categories} />
 
         <Card title="Transactions">
           <div className="filter-section">
