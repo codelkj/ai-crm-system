@@ -104,9 +104,11 @@ crm-ai-project/
    ```
 
 3. **Access application**
-   - Frontend: http://localhost
-   - Backend: http://localhost:3000
-   - Database: localhost:5432
+   - **Frontend**: http://localhost:5173
+   - **Backend API**: http://localhost:3000
+   - **API Documentation (Swagger)**: http://localhost:3000/api/v1/docs
+   - **API Documentation (ReDoc)**: http://localhost:3000/api/v1/redoc
+   - **Database**: localhost:5432
 
 ### Option 2: Local Development
 
@@ -154,6 +156,37 @@ crm-ai-project/
    npm run dev
    ```
 
+## Application Access
+
+### 🌐 URLs
+
+- **Frontend Application**: http://localhost:5173
+- **Backend API**: http://localhost:3000
+- **Swagger UI (Interactive API Docs)**: http://localhost:3000/api/v1/docs
+- **ReDoc (Clean API Docs)**: http://localhost:3000/api/v1/redoc
+- **Database**: localhost:5432
+
+### 🔐 Getting Started
+
+1. **Get an authentication token**:
+   ```bash
+   cd backend
+   node get-token.js
+   ```
+
+2. **Authorize in Swagger UI**:
+   - Open http://localhost:3000/api/v1/docs
+   - Click the green "Authorize" button
+   - Paste the token (without "Bearer" prefix)
+   - Click "Authorize" → "Close"
+
+3. **Test the API**:
+   - Try `GET /auth/me` to verify authentication
+   - Try `GET /financial/categories` to see all categories
+   - Try `POST /financial/transactions/upload` to upload CSV with AI
+
+See `backend/SWAGGER_AUTH_GUIDE.md` for detailed authentication instructions.
+
 ## Documentation
 
 - [Architecture Overview](./ARCHITECTURE.md)
@@ -176,6 +209,21 @@ See `.env.example` files for complete list.
 
 ## API Endpoints
 
+**Interactive API Documentation**: http://localhost:3000/api/v1/docs
+
+### Authentication
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - Login
+- `GET /api/v1/auth/me` - Get current user profile
+
+### Financial (AI-Powered)
+- `POST /api/v1/financial/bank-accounts` - Create bank account
+- `GET /api/v1/financial/bank-accounts` - List all accounts
+- `POST /api/v1/financial/transactions/upload` - Upload CSV with AI categorization
+- `GET /api/v1/financial/transactions` - List transactions with filters
+- `PATCH /api/v1/financial/transactions/:id/category` - Override category
+- `GET /api/v1/financial/categories` - List all categories
+
 ### CRM
 - `GET /api/v1/crm/companies` - List companies
 - `POST /api/v1/crm/companies` - Create company
@@ -183,18 +231,18 @@ See `.env.example` files for complete list.
 - `POST /api/v1/crm/contacts` - Create contact
 
 ### Sales
-- `GET /api/v1/sales/deals` - List deals (Kanban view)
-- `PUT /api/v1/sales/deals/:id/stage` - Move deal to stage
+- `GET /api/v1/sales/deals` - List deals
+- `POST /api/v1/sales/deals` - Create deal
+- `PATCH /api/v1/sales/deals/:id/move` - Move deal to stage (Kanban)
+- `GET /api/v1/sales/kanban` - Get Kanban board view
 
-### Legal
-- `POST /api/v1/legal/documents` - Upload and process PDF
-- `GET /api/v1/legal/documents/:id` - Get document with extracted terms
+### Legal (AI-Powered)
+- `POST /api/v1/legal/documents/upload` - Upload PDF with AI term extraction
+- `GET /api/v1/legal/documents` - List documents
+- `POST /api/v1/legal/documents/:id/reprocess` - Re-extract terms with AI
+- `GET /api/v1/legal/stats` - Processing statistics
 
-### Financial
-- `POST /api/v1/financial/transactions/import` - Import bank CSV
-- `GET /api/v1/financial/projections` - Get cash flow projections
-
-See [API_DESIGN.md](./API_DESIGN.md) for complete API documentation.
+**Full documentation with request/response examples**: http://localhost:3000/api/v1/docs
 
 ## Development
 
