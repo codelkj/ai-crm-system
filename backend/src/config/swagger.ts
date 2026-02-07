@@ -36,7 +36,7 @@ const options: swaggerJsdoc.Options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
-          description: 'Enter your JWT token in the format: Bearer <token>',
+          description: 'Enter ONLY your JWT token (without "Bearer" prefix). Get a token by clicking the green "Authorize" button above and pasting your token from /auth/login or /auth/register.',
         },
       },
       schemas: {
