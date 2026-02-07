@@ -1,4 +1,4 @@
-Date,Description,Amount,Type
+date,description,amount,type
 2024-01-15,Amazon AWS Services,125.50,debit
 2024-01-16,Client Payment - Acme Corp,2500.00,credit
 2024-01-17,Office Supplies - Staples,87.32,debit
