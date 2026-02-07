@@ -1,0 +1,551 @@
+/**
+ * Transaction Service
+ */
+
+import { v4 as uuidv4 } from 'uuid';
+import {
+  Transaction,
+  CreateTransactionDTO,
+  UpdateTransactionDTO,
+  TransactionFilters,
+} from '../types/financial.types';
+import accountService from './account.service';
+import categoryService from './category.service';
+import categorizationService from './categorization.service';
+
+class TransactionService {
+  private transactions: Transaction[] = [];
+
+  constructor() {
+    this.initializeMockTransactions();
+  }
+
+  private async initializeMockTransactions(): Promise<void> {
+    const accounts = await accountService.getAll();
+    const categories = await categoryService.getAll();
+
+    if (accounts.length === 0 || categories.length === 0) {
+      setTimeout(() => this.initializeMockTransactions(), 100);
+      return;
+    }
+
+    const checkingAccount = accounts[0];
+    const savingsAccount = accounts[1];
+    const creditAccount = accounts[2];
+
+    // Get categories by name
+    const getCategory = (name: string) =>
+      categories.find((c) => c.name === name);
+
+    const now = new Date();
+    const mockTransactions: Omit<
+      Transaction,
+      'id' | 'created_at' | 'updated_at'
+    >[] = [
+      // Income transactions (last 3 months)
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Sales Revenue')!.id,
+        type: 'income',
+        amount: 15000,
+        description: 'Customer Payment - Invoice #1234',
+        transaction_date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+        reference: 'INV-1234',
+        ai_categorized: true,
+        confidence_score: 0.95,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Sales Revenue')!.id,
+        type: 'income',
+        amount: 22000,
+        description: 'Monthly Revenue - Subscription Services',
+        transaction_date: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
+        reference: 'REV-2024-01',
+        ai_categorized: true,
+        confidence_score: 0.92,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Consulting')!.id,
+        type: 'income',
+        amount: 8500,
+        description: 'Consulting Services - Project Alpha',
+        transaction_date: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+        reference: 'CONS-001',
+        ai_categorized: true,
+        confidence_score: 0.89,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Sales Revenue')!.id,
+        type: 'income',
+        amount: 18500,
+        description: 'Payment Received - Client ABC Corp',
+        transaction_date: new Date(now.getTime() - 25 * 24 * 60 * 60 * 1000),
+        reference: 'INV-1220',
+        ai_categorized: true,
+        confidence_score: 0.94,
+      },
+      {
+        account_id: savingsAccount.id,
+        category_id: getCategory('Investment Income')!.id,
+        type: 'income',
+        amount: 1200,
+        description: 'Interest Payment - Q4 2024',
+        transaction_date: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+        reference: 'INT-Q4-2024',
+        ai_categorized: true,
+        confidence_score: 0.98,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Sales Revenue')!.id,
+        type: 'income',
+        amount: 25000,
+        description: 'Invoice Payment - Enterprise Client',
+        transaction_date: new Date(now.getTime() - 40 * 24 * 60 * 60 * 1000),
+        reference: 'INV-1198',
+        ai_categorized: true,
+        confidence_score: 0.93,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Sales Revenue')!.id,
+        type: 'income',
+        amount: 19000,
+        description: 'Monthly Recurring Revenue',
+        transaction_date: new Date(now.getTime() - 45 * 24 * 60 * 60 * 1000),
+        reference: 'MRR-NOV-2024',
+        ai_categorized: true,
+        confidence_score: 0.91,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Consulting')!.id,
+        type: 'income',
+        amount: 12000,
+        description: 'Professional Services - Beta Project',
+        transaction_date: new Date(now.getTime() - 50 * 24 * 60 * 60 * 1000),
+        reference: 'CONS-002',
+        ai_categorized: true,
+        confidence_score: 0.88,
+      },
+
+      // Expense transactions
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Rent')!.id,
+        type: 'expense',
+        amount: 5000,
+        description: 'Office Rent - January 2025',
+        transaction_date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+        reference: 'RENT-JAN-2025',
+        ai_categorized: true,
+        confidence_score: 0.97,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Payroll')!.id,
+        type: 'expense',
+        amount: 12000,
+        description: 'Employee Payroll - January 2025',
+        transaction_date: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+        reference: 'PAY-JAN-2025',
+        ai_categorized: true,
+        confidence_score: 0.99,
+      },
+      {
+        account_id: creditAccount.id,
+        category_id: getCategory('Software & Subscriptions')!.id,
+        type: 'expense',
+        amount: 299,
+        description: 'GitHub Enterprise Subscription',
+        transaction_date: new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000),
+        reference: 'GITHUB-JAN',
+        ai_categorized: true,
+        confidence_score: 0.96,
+      },
+      {
+        account_id: creditAccount.id,
+        category_id: getCategory('Software & Subscriptions')!.id,
+        type: 'expense',
+        amount: 150,
+        description: 'AWS Cloud Services',
+        transaction_date: new Date(now.getTime() - 9 * 24 * 60 * 60 * 1000),
+        reference: 'AWS-JAN',
+        ai_categorized: true,
+        confidence_score: 0.95,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Utilities')!.id,
+        type: 'expense',
+        amount: 450,
+        description: 'Internet & Phone Services',
+        transaction_date: new Date(now.getTime() - 12 * 24 * 60 * 60 * 1000),
+        reference: 'UTIL-JAN',
+        ai_categorized: true,
+        confidence_score: 0.93,
+      },
+      {
+        account_id: creditAccount.id,
+        category_id: getCategory('Marketing')!.id,
+        type: 'expense',
+        amount: 2500,
+        description: 'Google Ads Campaign - Q1',
+        transaction_date: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+        reference: 'GADS-Q1',
+        ai_categorized: true,
+        confidence_score: 0.94,
+      },
+      {
+        account_id: creditAccount.id,
+        category_id: getCategory('Office Supplies')!.id,
+        type: 'expense',
+        amount: 380,
+        description: 'Office Equipment & Supplies',
+        transaction_date: new Date(now.getTime() - 18 * 24 * 60 * 60 * 1000),
+        reference: 'OFFICE-JAN',
+        ai_categorized: true,
+        confidence_score: 0.89,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Professional Services')!.id,
+        type: 'expense',
+        amount: 1500,
+        description: 'Legal Services - Contract Review',
+        transaction_date: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+        reference: 'LEGAL-001',
+        ai_categorized: true,
+        confidence_score: 0.92,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Insurance')!.id,
+        type: 'expense',
+        amount: 800,
+        description: 'Business Insurance - Monthly Premium',
+        transaction_date: new Date(now.getTime() - 22 * 24 * 60 * 60 * 1000),
+        reference: 'INS-JAN',
+        ai_categorized: true,
+        confidence_score: 0.96,
+      },
+      {
+        account_id: creditAccount.id,
+        category_id: getCategory('Travel')!.id,
+        type: 'expense',
+        amount: 1200,
+        description: 'Business Travel - Flight to NYC',
+        transaction_date: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000),
+        reference: 'TRAVEL-001',
+        ai_categorized: true,
+        confidence_score: 0.91,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Rent')!.id,
+        type: 'expense',
+        amount: 5000,
+        description: 'Office Rent - December 2024',
+        transaction_date: new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000),
+        reference: 'RENT-DEC-2024',
+        ai_categorized: true,
+        confidence_score: 0.97,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Payroll')!.id,
+        type: 'expense',
+        amount: 12000,
+        description: 'Employee Salaries - December 2024',
+        transaction_date: new Date(now.getTime() - 38 * 24 * 60 * 60 * 1000),
+        reference: 'PAY-DEC-2024',
+        ai_categorized: true,
+        confidence_score: 0.99,
+      },
+      {
+        account_id: creditAccount.id,
+        category_id: getCategory('Software & Subscriptions')!.id,
+        type: 'expense',
+        amount: 299,
+        description: 'GitHub Enterprise - December',
+        transaction_date: new Date(now.getTime() - 40 * 24 * 60 * 60 * 1000),
+        reference: 'GITHUB-DEC',
+        ai_categorized: true,
+        confidence_score: 0.96,
+      },
+      {
+        account_id: creditAccount.id,
+        category_id: getCategory('Software & Subscriptions')!.id,
+        type: 'expense',
+        amount: 145,
+        description: 'AWS Services - December',
+        transaction_date: new Date(now.getTime() - 42 * 24 * 60 * 60 * 1000),
+        reference: 'AWS-DEC',
+        ai_categorized: true,
+        confidence_score: 0.95,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Utilities')!.id,
+        type: 'expense',
+        amount: 430,
+        description: 'Utilities - December 2024',
+        transaction_date: new Date(now.getTime() - 45 * 24 * 60 * 60 * 1000),
+        reference: 'UTIL-DEC',
+        ai_categorized: true,
+        confidence_score: 0.93,
+      },
+      {
+        account_id: creditAccount.id,
+        category_id: getCategory('Marketing')!.id,
+        type: 'expense',
+        amount: 2200,
+        description: 'Facebook Ads - Holiday Campaign',
+        transaction_date: new Date(now.getTime() - 48 * 24 * 60 * 60 * 1000),
+        reference: 'FB-DEC',
+        ai_categorized: true,
+        confidence_score: 0.94,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Rent')!.id,
+        type: 'expense',
+        amount: 5000,
+        description: 'Office Lease - November 2024',
+        transaction_date: new Date(now.getTime() - 65 * 24 * 60 * 60 * 1000),
+        reference: 'RENT-NOV-2024',
+        ai_categorized: true,
+        confidence_score: 0.97,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Payroll')!.id,
+        type: 'expense',
+        amount: 11500,
+        description: 'Payroll - November 2024',
+        transaction_date: new Date(now.getTime() - 68 * 24 * 60 * 60 * 1000),
+        reference: 'PAY-NOV-2024',
+        ai_categorized: true,
+        confidence_score: 0.99,
+      },
+      {
+        account_id: creditAccount.id,
+        category_id: getCategory('Software & Subscriptions')!.id,
+        type: 'expense',
+        amount: 299,
+        description: 'GitHub - November',
+        transaction_date: new Date(now.getTime() - 70 * 24 * 60 * 60 * 1000),
+        reference: 'GITHUB-NOV',
+        ai_categorized: true,
+        confidence_score: 0.96,
+      },
+      {
+        account_id: creditAccount.id,
+        category_id: getCategory('Software & Subscriptions')!.id,
+        type: 'expense',
+        amount: 138,
+        description: 'AWS Cloud - November',
+        transaction_date: new Date(now.getTime() - 72 * 24 * 60 * 60 * 1000),
+        reference: 'AWS-NOV',
+        ai_categorized: true,
+        confidence_score: 0.95,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Professional Services')!.id,
+        type: 'expense',
+        amount: 2000,
+        description: 'Accounting Services - Q4 Tax Prep',
+        transaction_date: new Date(now.getTime() - 75 * 24 * 60 * 60 * 1000),
+        reference: 'ACCT-Q4',
+        ai_categorized: true,
+        confidence_score: 0.93,
+      },
+      {
+        account_id: checkingAccount.id,
+        category_id: getCategory('Utilities')!.id,
+        type: 'expense',
+        amount: 420,
+        description: 'Internet and Phone - November',
+        transaction_date: new Date(now.getTime() - 78 * 24 * 60 * 60 * 1000),
+        reference: 'UTIL-NOV',
+        ai_categorized: true,
+        confidence_score: 0.93,
+      },
+    ];
+
+    // Convert to full transactions
+    this.transactions = mockTransactions.map((t) => ({
+      ...t,
+      id: uuidv4(),
+      created_at: new Date(),
+      updated_at: new Date(),
+    }));
+
+    // Update account balances
+    for (const account of accounts) {
+      const balance = await accountService.calculateBalance(
+        account.id,
+        this.transactions
+      );
+      await accountService.updateBalance(account.id, balance);
+    }
+  }
+
+  async getAll(filters?: TransactionFilters): Promise<Transaction[]> {
+    let filtered = [...this.transactions];
+
+    if (filters) {
+      if (filters.account_id) {
+        filtered = filtered.filter((t) => t.account_id === filters.account_id);
+      }
+      if (filters.category_id) {
+        filtered = filtered.filter(
+          (t) => t.category_id === filters.category_id
+        );
+      }
+      if (filters.type) {
+        filtered = filtered.filter((t) => t.type === filters.type);
+      }
+      if (filters.start_date) {
+        const startDate = new Date(filters.start_date);
+        filtered = filtered.filter(
+          (t) => new Date(t.transaction_date) >= startDate
+        );
+      }
+      if (filters.end_date) {
+        const endDate = new Date(filters.end_date);
+        filtered = filtered.filter(
+          (t) => new Date(t.transaction_date) <= endDate
+        );
+      }
+    }
+
+    // Sort by date descending
+    return filtered.sort(
+      (a, b) =>
+        new Date(b.transaction_date).getTime() -
+        new Date(a.transaction_date).getTime()
+    );
+  }
+
+  async getById(id: string): Promise<Transaction | null> {
+    return this.transactions.find((t) => t.id === id) || null;
+  }
+
+  async create(data: CreateTransactionDTO): Promise<Transaction> {
+    let categoryId = data.category_id;
+    let aiCategorized = false;
+    let confidenceScore: number | undefined;
+
+    // Auto-categorize if no category provided
+    if (!categoryId) {
+      const result = await categorizationService.categorize(
+        data.description,
+        data.amount,
+        data.type
+      );
+      categoryId = result.category_id;
+      aiCategorized = true;
+      confidenceScore = result.confidence;
+    }
+
+    const transaction: Transaction = {
+      id: uuidv4(),
+      account_id: data.account_id,
+      category_id: categoryId!,
+      type: data.type,
+      amount: data.amount,
+      description: data.description,
+      transaction_date: new Date(data.transaction_date),
+      reference: data.reference,
+      notes: data.notes,
+      ai_categorized: aiCategorized,
+      confidence_score: confidenceScore,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+
+    this.transactions.push(transaction);
+
+    // Update account balance
+    const balance = await accountService.calculateBalance(
+      data.account_id,
+      this.transactions
+    );
+    await accountService.updateBalance(data.account_id, balance);
+
+    return transaction;
+  }
+
+  async update(
+    id: string,
+    data: UpdateTransactionDTO
+  ): Promise<Transaction | null> {
+    const index = this.transactions.findIndex((t) => t.id === id);
+    if (index === -1) return null;
+
+    const oldAccountId = this.transactions[index].account_id;
+
+    this.transactions[index] = {
+      ...this.transactions[index],
+      ...data,
+      transaction_date: data.transaction_date
+        ? new Date(data.transaction_date)
+        : this.transactions[index].transaction_date,
+      updated_at: new Date(),
+    };
+
+    // Update account balances
+    const accountIds = new Set([
+      oldAccountId,
+      this.transactions[index].account_id,
+    ]);
+    for (const accountId of accountIds) {
+      const balance = await accountService.calculateBalance(
+        accountId,
+        this.transactions
+      );
+      await accountService.updateBalance(accountId, balance);
+    }
+
+    return this.transactions[index];
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const index = this.transactions.findIndex((t) => t.id === id);
+    if (index === -1) return false;
+
+    const accountId = this.transactions[index].account_id;
+    this.transactions.splice(index, 1);
+
+    // Update account balance
+    const balance = await accountService.calculateBalance(
+      accountId,
+      this.transactions
+    );
+    await accountService.updateBalance(accountId, balance);
+
+    return true;
+  }
+
+  async categorizeTransaction(id: string): Promise<Transaction | null> {
+    const transaction = await this.getById(id);
+    if (!transaction) return null;
+
+    const result = await categorizationService.categorize(
+      transaction.description,
+      transaction.amount,
+      transaction.type
+    );
+
+    return this.update(id, {
+      category_id: result.category_id,
+    });
+  }
+}
+
+export default new TransactionService();

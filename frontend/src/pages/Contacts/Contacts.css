@@ -1,0 +1,32 @@
+.contacts-page {
+  max-width: 100%;
+}
+
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-section label {
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+}
+
+.company-filter {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 200px;
+  cursor: pointer;
+}
+
+.company-filter:focus {
+  outline: none;
+  border-color: #0f3460;
+}

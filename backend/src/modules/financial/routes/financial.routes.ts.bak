@@ -1,0 +1,106 @@
+/**
+ * Financial Routes
+ */
+
+import { Router } from 'express';
+import accountController from '../controllers/account.controller';
+import categoryController from '../controllers/category.controller';
+import transactionController from '../controllers/transaction.controller';
+import projectionController from '../controllers/projection.controller';
+import {
+  validateBankAccount,
+  validateCategory,
+  validateTransaction,
+  validateCSVImport,
+  validateProjectionParams,
+} from '../validators/financial.validators';
+import { authenticate } from '../../../shared/middleware/authenticate';
+
+const router = Router();
+
+// Apply authentication to all routes
+router.use(authenticate);
+
+// ============= Bank Account Routes =============
+router.get('/accounts', accountController.getAll.bind(accountController));
+router.get('/accounts/:id', accountController.getById.bind(accountController));
+router.post(
+  '/accounts',
+  validateBankAccount,
+  accountController.create.bind(accountController)
+);
+router.put('/accounts/:id', accountController.update.bind(accountController));
+router.delete(
+  '/accounts/:id',
+  accountController.delete.bind(accountController)
+);
+
+// ============= Category Routes =============
+router.get('/categories', categoryController.getAll.bind(categoryController));
+router.get(
+  '/categories/:id',
+  categoryController.getById.bind(categoryController)
+);
+router.post(
+  '/categories',
+  validateCategory,
+  categoryController.create.bind(categoryController)
+);
+router.put(
+  '/categories/:id',
+  categoryController.update.bind(categoryController)
+);
+router.delete(
+  '/categories/:id',
+  categoryController.delete.bind(categoryController)
+);
+
+// ============= Transaction Routes =============
+router.get(
+  '/transactions',
+  transactionController.getAll.bind(transactionController)
+);
+router.get(
+  '/transactions/:id',
+  transactionController.getById.bind(transactionController)
+);
+router.post(
+  '/transactions',
+  validateTransaction,
+  transactionController.create.bind(transactionController)
+);
+router.put(
+  '/transactions/:id',
+  transactionController.update.bind(transactionController)
+);
+router.delete(
+  '/transactions/:id',
+  transactionController.delete.bind(transactionController)
+);
+
+// AI Categorization
+router.post(
+  '/transactions/:id/categorize',
+  transactionController.categorize.bind(transactionController)
+);
+
+// CSV Import
+router.post(
+  '/transactions/import',
+  validateCSVImport,
+  transactionController.importCSV.bind(transactionController)
+);
+router.get(
+  '/transactions/sample-csv',
+  transactionController.getSampleCSV.bind(transactionController)
+);
+
+// ============= Cash Flow Projection Routes =============
+router.post(
+  '/projections/generate',
+  validateProjectionParams,
+  projectionController.generate.bind(projectionController)
+);
+router.get('/projections', projectionController.getAll.bind(projectionController));
+
+export default router;

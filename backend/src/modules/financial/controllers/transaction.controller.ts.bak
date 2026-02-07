@@ -1,0 +1,237 @@
+/**
+ * Transaction Controller
+ */
+
+import { Request, Response } from 'express';
+import transactionService from '../services/transaction.service';
+import csvParserService from '../services/csv-parser.service';
+import {
+  CreateTransactionDTO,
+  UpdateTransactionDTO,
+  TransactionFilters,
+} from '../types/financial.types';
+
+class TransactionController {
+  async getAll(req: Request, res: Response): Promise<void> {
+    try {
+      const filters: TransactionFilters = {
+        account_id: req.query.account_id as string,
+        category_id: req.query.category_id as string,
+        type: req.query.type as 'income' | 'expense' | undefined,
+        start_date: req.query.start_date as string,
+        end_date: req.query.end_date as string,
+      };
+
+      const transactions = await transactionService.getAll(filters);
+
+      // Calculate summary statistics
+      const summary = {
+        total_income: transactions
+          .filter((t) => t.type === 'income')
+          .reduce((sum, t) => sum + t.amount, 0),
+        total_expenses: transactions
+          .filter((t) => t.type === 'expense')
+          .reduce((sum, t) => sum + t.amount, 0),
+        net_cash_flow: 0,
+      };
+      summary.net_cash_flow = summary.total_income - summary.total_expenses;
+
+      res.json({
+        success: true,
+        data: transactions,
+        count: transactions.length,
+        summary,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to fetch transactions',
+      });
+    }
+  }
+
+  async getById(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const transaction = await transactionService.getById(id);
+
+      if (!transaction) {
+        res.status(404).json({
+          success: false,
+          error: 'Transaction not found',
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: transaction,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to fetch transaction',
+      });
+    }
+  }
+
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const data: CreateTransactionDTO = req.body;
+      const transaction = await transactionService.create(data);
+
+      res.status(201).json({
+        success: true,
+        data: transaction,
+        message: 'Transaction created successfully',
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to create transaction',
+      });
+    }
+  }
+
+  async update(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const data: UpdateTransactionDTO = req.body;
+      const transaction = await transactionService.update(id, data);
+
+      if (!transaction) {
+        res.status(404).json({
+          success: false,
+          error: 'Transaction not found',
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: transaction,
+        message: 'Transaction updated successfully',
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to update transaction',
+      });
+    }
+  }
+
+  async delete(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const success = await transactionService.delete(id);
+
+      if (!success) {
+        res.status(404).json({
+          success: false,
+          error: 'Transaction not found',
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Transaction deleted successfully',
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to delete transaction',
+      });
+    }
+  }
+
+  async categorize(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const transaction = await transactionService.categorizeTransaction(id);
+
+      if (!transaction) {
+        res.status(404).json({
+          success: false,
+          error: 'Transaction not found',
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: transaction,
+        message: 'Transaction recategorized successfully',
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to categorize transaction',
+      });
+    }
+  }
+
+  async importCSV(req: Request, res: Response): Promise<void> {
+    try {
+      const { account_id } = req.body;
+
+      if (!account_id) {
+        res.status(400).json({
+          success: false,
+          error: 'Account ID is required',
+        });
+        return;
+      }
+
+      // In a real implementation, we'd use multer to handle file upload
+      // For now, we'll accept CSV content in the request body
+      const csvContent =
+        req.body.csv_content || csvParserService.generateSampleCSV();
+
+      const result = await csvParserService.parseAndImport(
+        account_id,
+        csvContent
+      );
+
+      res.json({
+        success: true,
+        data: result,
+        message: `Import completed. ${result.successful} successful, ${result.failed} failed.`,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to import CSV',
+      });
+    }
+  }
+
+  async getSampleCSV(_req: Request, res: Response): Promise<void> {
+    try {
+      const csv = csvParserService.generateSampleCSV();
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=sample_transactions.csv'
+      );
+      res.send(csv);
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to generate sample CSV',
+      });
+    }
+  }
+}
+
+export default new TransactionController();

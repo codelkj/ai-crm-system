@@ -1,0 +1,18 @@
+.legal-documents-page {
+  max-width: 100%;
+}
+
+.upload-section {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.error-banner {
+  background: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #fcc;
+}

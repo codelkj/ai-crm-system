@@ -1,0 +1,67 @@
+.kanban-column {
+  background: #f8f9fa;
+  border-radius: 8px;
+  min-width: 300px;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 240px);
+}
+
+.column-header {
+  padding: 16px;
+  border-top: 4px solid;
+  border-radius: 8px 8px 0 0;
+  background: white;
+}
+
+.column-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.column-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #666;
+}
+
+.deal-count {
+  font-weight: 500;
+}
+
+.total-value {
+  color: #16c79a;
+  font-weight: 600;
+}
+
+.column-content {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  min-height: 200px;
+}
+
+.column-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.column-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.column-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.empty-column {
+  padding: 40px 20px;
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  font-size: 14px;
+}
