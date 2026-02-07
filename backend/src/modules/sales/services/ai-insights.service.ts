@@ -3,7 +3,7 @@
  * Provides AI-powered insights and predictions for sales pipeline
  */
 
-import { pool } from '../../../config/database';
+import pool from '../../../config/database';
 import { getOpenAIClient } from '../../../config/ai';
 
 export class SalesAIInsightsService {
@@ -91,14 +91,14 @@ Provide:
 
     // Get deal details
     const dealResult = await pool.query(
-      `SELECT d.*, ps.name as stage_name, ps.order as stage_order, ps.probability,
+      `SELECT d.*, ps.name as stage_name, ps."order" as stage_order, ps.probability,
               c.name as company_name,
-              (SELECT COUNT(*) FROM activities WHERE entity_type = 'deal' AND entity_id = d.id) as activity_count
+              (SELECT COUNT(*) FROM activities WHERE deal_id = d.id) as activity_count
        FROM deals d
        LEFT JOIN pipeline_stages ps ON d.stage_id = ps.id
        LEFT JOIN companies c ON d.company_id = c.id
-       WHERE d.id = $1 AND d.created_by = $2`,
-      [dealId, userId]
+       WHERE d.id = $1`,
+      [dealId]
     );
 
     if (dealResult.rows.length === 0) {
@@ -116,10 +116,9 @@ Provide:
     const avgCloseTimeResult = await pool.query(
       `SELECT AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/86400) as avg_days
        FROM deals
-       WHERE created_by = $1 AND stage_id IN (
+       WHERE stage_id IN (
          SELECT id FROM pipeline_stages WHERE name ILIKE '%won%' OR name ILIKE '%closed%'
-       )`,
-      [userId]
+       )`
     );
 
     const avgCloseTime = avgCloseTimeResult.rows[0]?.avg_days || 30;
@@ -228,19 +227,16 @@ Provide:
         COUNT(*) as total_deals,
         COALESCE(SUM(value), 0) as total_value,
         COALESCE(AVG(value), 0) as avg_value
-       FROM deals
-       WHERE created_by = $1`,
-      [userId]
+       FROM deals`
     );
 
     // Get deals by stage
     const stagesResult = await pool.query(
       `SELECT ps.name, COUNT(d.id) as count, COALESCE(SUM(d.value), 0) as value
        FROM pipeline_stages ps
-       LEFT JOIN deals d ON d.stage_id = ps.id AND d.created_by = $1
-       GROUP BY ps.name
-       ORDER BY ps.order`,
-      [userId]
+       LEFT JOIN deals d ON d.stage_id = ps.id
+       GROUP BY ps.name, ps."order"
+       ORDER BY ps."order"`
     );
 
     // Get closing stage deals
@@ -248,19 +244,15 @@ Provide:
       `SELECT COUNT(*) as count, COALESCE(SUM(value), 0) as value
        FROM deals d
        JOIN pipeline_stages ps ON d.stage_id = ps.id
-       WHERE d.created_by = $1
-       AND (ps.name ILIKE '%closing%' OR ps.name ILIKE '%negotiation%' OR ps.probability >= 0.7)`,
-      [userId]
+       WHERE (ps.name ILIKE '%closing%' OR ps.name ILIKE '%negotiation%' OR ps.probability >= 70)`
     );
 
     // Get recent activity
     const activityResult = await pool.query(
       `SELECT COUNT(*) as count
        FROM activities
-       WHERE created_by = $1
-       AND entity_type = 'deal'
-       AND created_at >= CURRENT_DATE - INTERVAL '7 days'`,
-      [userId]
+       WHERE deal_id IS NOT NULL
+       AND created_at >= CURRENT_DATE - INTERVAL '7 days'`
     );
 
     const deals = dealsResult.rows[0] || { total_deals: 0, total_value: 0, avg_value: 0 };

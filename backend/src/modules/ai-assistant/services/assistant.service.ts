@@ -3,7 +3,7 @@
  * Provides intelligent assistance using OpenAI with CRM data context
  */
 
-import { pool } from '../../../config/database';
+import pool from '../../../config/database';
 import { getOpenAIClient } from '../../../config/ai';
 
 interface Message {
@@ -135,17 +135,13 @@ export class AssistantService {
     try {
       // Get companies summary
       const companiesResult = await pool.query(
-        `SELECT COUNT(*) as total,
-                COALESCE(SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END), 0) as active
-         FROM companies
-         WHERE created_by = $1`,
-        [userId]
+        `SELECT COUNT(*) as total
+         FROM companies`
       );
 
       // Get contacts summary
       const contactsResult = await pool.query(
-        `SELECT COUNT(*) as total FROM contacts WHERE created_by = $1`,
-        [userId]
+        `SELECT COUNT(*) as total FROM contacts`
       );
 
       // Get deals summary
@@ -155,9 +151,7 @@ export class AssistantService {
                 ps.name as stage
          FROM deals d
          LEFT JOIN pipeline_stages ps ON d.stage_id = ps.id
-         WHERE d.created_by = $1
-         GROUP BY ps.name`,
-        [userId]
+         GROUP BY ps.name`
       );
 
       // Get recent transactions
@@ -167,30 +161,25 @@ export class AssistantService {
           COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END), 0) as total_income,
           COALESCE(SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END), 0) as total_expenses
          FROM transactions t
-         JOIN bank_accounts ba ON t.account_id = ba.id
-         WHERE ba.user_id = $1
-         AND t.date >= CURRENT_DATE - INTERVAL '30 days'`,
-        [userId]
+         WHERE t.date >= CURRENT_DATE - INTERVAL '30 days'`
       );
 
       // Get activities
       const activitiesResult = await pool.query(
         `SELECT COUNT(*) as total, type
          FROM activities
-         WHERE created_by = $1
-         AND created_at >= CURRENT_DATE - INTERVAL '7 days'
-         GROUP BY type`,
-        [userId]
+         WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
+         GROUP BY type`
       );
 
-      const companies = companiesResult.rows[0] || { total: 0, active: 0 };
+      const companies = companiesResult.rows[0] || { total: 0 };
       const contacts = contactsResult.rows[0] || { total: 0 };
       const transactions = transactionsResult.rows[0] || { total: 0, total_income: 0, total_expenses: 0 };
       const deals = dealsResult.rows;
       const activities = activitiesResult.rows;
 
       return {
-        companiesSummary: `${companies.total} companies (${companies.active} active)`,
+        companiesSummary: `${companies.total} companies`,
         contactsSummary: `${contacts.total} contacts`,
         dealsSummary: deals.length > 0
           ? deals.map(d => `${d.total} deals in ${d.stage} worth $${Number(d.total_value).toLocaleString()}`).join(', ')
