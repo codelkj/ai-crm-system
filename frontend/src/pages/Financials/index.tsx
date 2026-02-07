@@ -14,6 +14,7 @@ import TransactionForm from './TransactionForm';
 import CSVUpload from './CSVUpload';
 import ProjectionChart from './ProjectionChart';
 import AIInsights from '../../components/financial/AIInsights';
+import SeasonalPatterns from '../../components/financial/SeasonalPatterns';
 import { Transaction } from '../../services/financial.service';
 import { format } from 'date-fns';
 import './Financials.css';
@@ -187,7 +188,12 @@ const Financials: React.FC = () => {
           </Card>
         </div>
 
-        {showProjections && <ProjectionChart />}
+        {showProjections && (
+          <>
+            <ProjectionChart />
+            <SeasonalPatterns />
+          </>
+        )}
 
         {/* AI Insights */}
         <AIInsights transactions={transactions} categories={categories} />

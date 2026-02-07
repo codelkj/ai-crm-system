@@ -113,11 +113,20 @@ router.get(
 // ============= Projection Routes =============
 /**
  * POST /api/v1/financial/projections/generate
- * Generate cash flow projection
+ * Generate cash flow projection with seasonal adjustments
  */
 router.post(
   '/projections/generate',
   ProjectionController.generateProjection
+);
+
+/**
+ * GET /api/v1/financial/projections/seasonal-patterns
+ * Detect seasonal patterns in transaction data
+ */
+router.get(
+  '/projections/seasonal-patterns',
+  ProjectionController.detectSeasonalPatterns
 );
 
 /**

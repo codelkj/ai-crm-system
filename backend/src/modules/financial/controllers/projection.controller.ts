@@ -1,6 +1,6 @@
 /**
  * Projection Controller
- * Handles cash flow projection generation
+ * Handles cash flow projection generation and seasonal pattern detection
  */
 
 import { Request, Response, NextFunction } from 'express';
@@ -9,7 +9,7 @@ import { ProjectionService } from '../services/projection.service';
 
 export class ProjectionController {
   /**
-   * Generate cash flow projection
+   * Generate cash flow projection with seasonal adjustments
    */
   static generateProjection = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
@@ -19,6 +19,19 @@ export class ProjectionController {
 
       res.status(200).json({
         data: projection,
+      });
+    }
+  );
+
+  /**
+   * Detect seasonal patterns in transaction data
+   */
+  static detectSeasonalPatterns = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const patterns = await ProjectionService.detectSeasonalPatterns();
+
+      res.status(200).json({
+        data: patterns,
       });
     }
   );

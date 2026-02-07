@@ -163,4 +163,25 @@ export const financialService = {
     const response = await api.get('/financial/projections');
     return response.data.data;
   },
+
+  getSeasonalPatterns: async () => {
+    const response = await api.get('/financial/projections/seasonal-patterns');
+    return response.data.data;
+  },
+
+  uploadCSV: async (formData: FormData) => {
+    const response = await api.post('/financial/transactions/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data.data;
+  },
+
+  updateTransactionCategory: async (id: string, categoryId: string) => {
+    const response = await api.patch(`/financial/transactions/${id}/category`, {
+      category_id: categoryId,
+    });
+    return response.data.data;
+  },
 };
