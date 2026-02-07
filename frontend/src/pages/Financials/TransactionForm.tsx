@@ -21,11 +21,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSuccess })
   const [formData, setFormData] = useState({
     account_id: '',
     category_id: '',
-    transaction_date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split('T')[0],
     description: '',
     amount: '',
     type: 'debit' as 'debit' | 'credit',
-    reference_number: '',
+    notes: '',
   });
 
   const handleChange = (
@@ -47,7 +47,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSuccess })
         ...formData,
         amount: parseFloat(formData.amount),
         category_id: formData.category_id || undefined,
-        reference_number: formData.reference_number || undefined,
+        notes: formData.notes || undefined,
       };
 
       await financialService.createTransaction(data);
@@ -180,9 +180,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSuccess })
 
         <Input
           label="Date *"
-          name="transaction_date"
+          name="date"
           type="date"
-          value={formData.transaction_date}
+          value={formData.date}
           onChange={handleChange}
           required
         />
@@ -208,11 +208,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onClose, onSuccess })
         />
 
         <Input
-          label="Reference Number"
-          name="reference_number"
-          value={formData.reference_number}
+          label="Notes"
+          name="notes"
+          value={formData.notes}
           onChange={handleChange}
-          placeholder="Optional reference number"
+          placeholder="Optional notes"
         />
 
         <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>

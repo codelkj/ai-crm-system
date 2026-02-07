@@ -60,9 +60,9 @@ const Financials: React.FC = () => {
 
   const columns = [
     {
-      key: 'transaction_date',
+      key: 'date',
       label: 'Date',
-      render: (date: string) => format(new Date(date), 'MMM dd, yyyy'),
+      render: (date: string) => date ? format(new Date(date), 'MMM dd, yyyy') : '-',
     },
     { key: 'description', label: 'Description' },
     {

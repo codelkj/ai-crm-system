@@ -29,13 +29,14 @@ export interface Transaction {
   id: string;
   account_id: string;
   category_id?: string;
-  transaction_date: string;
+  date: string;
   description: string;
   amount: number;
   type: 'debit' | 'credit';
   balance_after?: number;
-  reference_number?: string;
-  metadata?: any;
+  notes?: string;
+  ai_confidence?: number;
+  category_name?: string;
   created_at: string;
   account?: BankAccount;
   category?: Category;
@@ -53,7 +54,7 @@ export interface CashFlowProjection {
 export const financialService = {
   // Bank Accounts
   getAccounts: async () => {
-    const response = await api.get('/financial/accounts');
+    const response = await api.get('/financial/bank-accounts');
     return response.data.data;
   },
 
@@ -63,7 +64,7 @@ export const financialService = {
   },
 
   createAccount: async (data: Partial<BankAccount>) => {
-    const response = await api.post('/financial/accounts', data);
+    const response = await api.post('/financial/bank-accounts', data);
     return response.data.data;
   },
 
