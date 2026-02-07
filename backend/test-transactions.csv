@@ -1,0 +1,16 @@
+Date,Description,Amount,Type
+2024-01-15,Amazon AWS Services,125.50,debit
+2024-01-16,Client Payment - Acme Corp,2500.00,credit
+2024-01-17,Office Supplies - Staples,87.32,debit
+2024-01-18,Shopify Subscription,29.00,debit
+2024-01-20,Salary - John Doe,3500.00,debit
+2024-01-22,Google Workspace,12.00,debit
+2024-01-23,Client Payment - TechStart Inc,1850.00,credit
+2024-01-25,Uber for Business,45.23,debit
+2024-01-26,LinkedIn Premium,59.99,debit
+2024-01-28,Restaurant - Client Meeting,156.78,debit
+2024-01-30,Consulting Services Revenue,5000.00,credit
+2024-02-01,Adobe Creative Cloud,52.99,debit
+2024-02-03,Phone Bill - Verizon,89.99,debit
+2024-02-05,Marketing Campaign - Facebook Ads,450.00,debit
+2024-02-07,Product Sale - Widget Store,3200.00,credit

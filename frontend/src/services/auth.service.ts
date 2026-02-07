@@ -21,7 +21,7 @@ export interface AuthResponse {
 export const authService = {
   login: async (credentials: { email: string; password: string }): Promise<AuthResponse> => {
     const response = await api.post('/auth/login', credentials);
-    return response.data;
+    return response.data.data;
   },
 
   register: async (data: {
@@ -31,7 +31,7 @@ export const authService = {
     last_name: string;
   }): Promise<AuthResponse> => {
     const response = await api.post('/auth/register', data);
-    return response.data;
+    return response.data.data;
   },
 
   getCurrentUser: async (): Promise<User> => {

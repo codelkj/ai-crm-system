@@ -5,8 +5,11 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
+import redoc from 'redoc-express';
 import { errorHandler } from './shared/middleware/error-handler';
 import { requestLogger } from './shared/utils/logger';
+import { swaggerSpec } from './config/swagger';
 
 // Import routes
 import authRoutes from './modules/auth/routes/auth.routes';
@@ -18,7 +21,18 @@ import financialRoutes from './modules/financial/routes/financial.routes';
 const app = express();
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+    },
+  },
+}));
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -40,16 +54,46 @@ app.get('/', (req, res) => {
       financial: '/api/v1/financial'
     },
     documentation: {
-      apiDesign: 'See API_DESIGN.md for endpoint documentation',
+      swagger: '/api/v1/docs',
+      redoc: '/api/v1/redoc',
+      openapi: '/api/v1/docs/swagger.json',
       quickStart: 'See QUICK_START.md for setup instructions'
     }
   });
+});
+
+// Favicon (prevents 404 errors)
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
 });
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// API Documentation
+app.get('/api/v1/docs/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'AI CRM API Documentation',
+}));
+
+app.get('/api/v1/redoc', redoc({
+  title: 'AI CRM API - ReDoc',
+  specUrl: '/api/v1/docs/swagger.json',
+  theme: {
+    colors: {
+      primary: {
+        main: '#2196f3',
+      },
+    },
+  },
+}));
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);

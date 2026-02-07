@@ -10,7 +10,42 @@ import { AppError, asyncHandler } from '../../../shared/middleware/error-handler
 
 export class DocumentController {
   /**
-   * Get all documents
+   * @swagger
+   * /legal/documents:
+   *   get:
+   *     summary: Get all legal documents with filtering
+   *     tags: [Legal]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 20
+   *       - in: query
+   *         name: company_id
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *       - in: query
+   *         name: deal_id
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *       - in: query
+   *         name: status
+   *         schema:
+   *           type: string
+   *           enum: [pending, processing, completed, failed]
+   *     responses:
+   *       200:
+   *         description: List of documents
    */
   static getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const page = parseInt(req.query.page as string) || 1;
@@ -41,7 +76,47 @@ export class DocumentController {
   });
 
   /**
-   * Upload and create new document
+   * @swagger
+   * /legal/documents/upload:
+   *   post:
+   *     summary: Upload legal document and extract terms with AI
+   *     description: Upload a PDF/DOC legal document. The system will automatically extract key terms, dates, and obligations using AI.
+   *     tags: [Legal]
+   *     security:
+   *       - BearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         multipart/form-data:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - file
+   *               - title
+   *               - document_type
+   *             properties:
+   *               file:
+   *                 type: string
+   *                 format: binary
+   *                 description: Legal document file (PDF, DOC, DOCX)
+   *               title:
+   *                 type: string
+   *                 example: Master Services Agreement
+   *               document_type:
+   *                 type: string
+   *                 enum: [contract, nda, proposal, invoice, other]
+   *                 example: contract
+   *               company_id:
+   *                 type: string
+   *                 format: uuid
+   *               deal_id:
+   *                 type: string
+   *                 format: uuid
+   *     responses:
+   *       201:
+   *         description: Document uploaded and processed successfully
+   *       400:
+   *         description: Validation error or no file uploaded
    */
   static upload = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Validate input
@@ -127,7 +202,26 @@ export class DocumentController {
   });
 
   /**
-   * Reprocess document (trigger AI extraction again)
+   * @swagger
+   * /legal/documents/{id}/reprocess:
+   *   post:
+   *     summary: Reprocess document with AI term extraction
+   *     description: Trigger AI to re-extract terms from an existing document
+   *     tags: [Legal]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *     responses:
+   *       200:
+   *         description: Document reprocessed successfully
+   *       404:
+   *         description: Document not found
    */
   static reprocess = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
@@ -140,7 +234,31 @@ export class DocumentController {
   });
 
   /**
-   * Get processing statistics
+   * @swagger
+   * /legal/stats:
+   *   get:
+   *     summary: Get document processing statistics
+   *     description: Get stats on document processing status, types, and counts
+   *     tags: [Legal]
+   *     security:
+   *       - BearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Processing statistics
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     total_documents:
+   *                       type: integer
+   *                     by_status:
+   *                       type: object
+   *                     by_type:
+   *                       type: object
    */
   static getStats = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const stats = await DocumentService.getProcessingStats();

@@ -10,7 +10,38 @@ import { AppError, asyncHandler } from '../../../shared/middleware/error-handler
 
 export class ContactController {
   /**
-   * Get all contacts
+   * @swagger
+   * /crm/contacts:
+   *   get:
+   *     summary: Get all contacts with filtering and pagination
+   *     tags: [CRM]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 20
+   *       - in: query
+   *         name: company_id
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *           description: Filter by company
+   *       - in: query
+   *         name: search
+   *         schema:
+   *           type: string
+   *           description: Search by name or email
+   *     responses:
+   *       200:
+   *         description: List of contacts
    */
   static getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const page = parseInt(req.query.page as string) || 1;
@@ -36,7 +67,45 @@ export class ContactController {
   });
 
   /**
-   * Create new contact
+   * @swagger
+   * /crm/contacts:
+   *   post:
+   *     summary: Create a new contact
+   *     tags: [CRM]
+   *     security:
+   *       - BearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - first_name
+   *               - last_name
+   *               - email
+   *             properties:
+   *               first_name:
+   *                 type: string
+   *                 example: John
+   *               last_name:
+   *                 type: string
+   *                 example: Doe
+   *               email:
+   *                 type: string
+   *                 example: john.doe@example.com
+   *               phone:
+   *                 type: string
+   *                 example: "+1234567890"
+   *               company_id:
+   *                 type: string
+   *                 format: uuid
+   *               position:
+   *                 type: string
+   *                 example: Sales Manager
+   *     responses:
+   *       201:
+   *         description: Contact created successfully
    */
   static create = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Validate input

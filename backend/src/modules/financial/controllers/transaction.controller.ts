@@ -12,7 +12,70 @@ import { AppError, asyncHandler } from '../../../shared/middleware/error-handler
 
 export class TransactionController {
   /**
-   * Upload and process CSV file
+   * @swagger
+   * /financial/transactions/upload:
+   *   post:
+   *     summary: Upload CSV file and categorize transactions with AI
+   *     description: Upload a CSV file containing bank transactions. The system will parse the file, detect duplicates, and use AI to categorize each transaction automatically.
+   *     tags: [Financial]
+   *     security:
+   *       - BearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         multipart/form-data:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - file
+   *               - account_id
+   *             properties:
+   *               file:
+   *                 type: string
+   *                 format: binary
+   *                 description: CSV file containing transactions (max 10MB)
+   *               account_id:
+   *                 type: string
+   *                 format: uuid
+   *                 description: ID of the bank account these transactions belong to
+   *               csv_format:
+   *                 type: string
+   *                 enum: [standard, chase, bofa]
+   *                 description: CSV format type (optional - will auto-detect if not specified)
+   *     responses:
+   *       200:
+   *         description: Transactions processed successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Transactions processed successfully
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     total:
+   *                       type: integer
+   *                       example: 50
+   *                     successful:
+   *                       type: integer
+   *                       example: 48
+   *                     failed:
+   *                       type: integer
+   *                       example: 2
+   *                     duplicates:
+   *                       type: integer
+   *                       example: 5
+   *       400:
+   *         description: Validation error or no file uploaded
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   *       401:
+   *         description: Unauthorized
    */
   static uploadCSV = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Validate input
@@ -41,7 +104,84 @@ export class TransactionController {
   });
 
   /**
-   * Get all transactions with filtering and pagination
+   * @swagger
+   * /financial/transactions:
+   *   get:
+   *     summary: Get all transactions with filtering and pagination
+   *     tags: [Financial]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: account_id
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *       - in: query
+   *         name: type
+   *         schema:
+   *           type: string
+   *           enum: [debit, credit]
+   *       - in: query
+   *         name: category_id
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *       - in: query
+   *         name: date_from
+   *         schema:
+   *           type: string
+   *           format: date
+   *       - in: query
+   *         name: date_to
+   *         schema:
+   *           type: string
+   *           format: date
+   *       - in: query
+   *         name: min_amount
+   *         schema:
+   *           type: number
+   *       - in: query
+   *         name: max_amount
+   *         schema:
+   *           type: number
+   *       - in: query
+   *         name: search
+   *         schema:
+   *           type: string
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 20
+   *     responses:
+   *       200:
+   *         description: List of transactions
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/Transaction'
+   *                 pagination:
+   *                   type: object
+   *                   properties:
+   *                     total:
+   *                       type: integer
+   *                     page:
+   *                       type: integer
+   *                     limit:
+   *                       type: integer
+   *                     pages:
+   *                       type: integer
    */
   static getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Validate input
@@ -69,7 +209,32 @@ export class TransactionController {
   });
 
   /**
-   * Get transaction by ID
+   * @swagger
+   * /financial/transactions/{id}:
+   *   get:
+   *     summary: Get transaction by ID
+   *     tags: [Financial]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *     responses:
+   *       200:
+   *         description: Transaction details
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 data:
+   *                   $ref: '#/components/schemas/Transaction'
+   *       404:
+   *         description: Transaction not found
    */
   static getById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
@@ -81,7 +246,51 @@ export class TransactionController {
   });
 
   /**
-   * Update transaction category (manual override)
+   * @swagger
+   * /financial/transactions/{id}/category:
+   *   patch:
+   *     summary: Update transaction category (manual override)
+   *     description: Override the AI-assigned category with a manual selection
+   *     tags: [Financial]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - category_id
+   *             properties:
+   *               category_id:
+   *                 type: string
+   *                 format: uuid
+   *                 description: New category ID
+   *               notes:
+   *                 type: string
+   *                 description: Optional notes about the override
+   *     responses:
+   *       200:
+   *         description: Category updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                 data:
+   *                   $ref: '#/components/schemas/Transaction'
+   *       404:
+   *         description: Transaction not found
    */
   static updateCategory = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Validate input
@@ -102,7 +311,25 @@ export class TransactionController {
   });
 
   /**
-   * Get all available categories
+   * @swagger
+   * /financial/categories:
+   *   get:
+   *     summary: Get all available transaction categories
+   *     tags: [Financial]
+   *     security:
+   *       - BearerAuth: []
+   *     responses:
+   *       200:
+   *         description: List of all categories
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/Category'
    */
   static getCategories = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const categories = await CategorizationService.getAllCategories();

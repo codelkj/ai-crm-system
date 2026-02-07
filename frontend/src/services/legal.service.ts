@@ -35,12 +35,12 @@ export const legalService = {
   // Documents
   getDocuments: async (params?: any) => {
     const response = await api.get('/legal/documents', { params });
-    return response.data;
+    return response.data.data;
   },
 
   getDocument: async (id: string) => {
     const response = await api.get(`/legal/documents/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   uploadDocument: async (formData: FormData) => {
@@ -49,54 +49,54 @@ export const legalService = {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data;
+    return response.data.data;
   },
 
   createDocument: async (data: Partial<LegalDocument>) => {
     const response = await api.post('/legal/documents/create', data);
-    return response.data;
+    return response.data.data;
   },
 
   deleteDocument: async (id: string) => {
     const response = await api.delete(`/legal/documents/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   reprocessDocument: async (id: string) => {
     const response = await api.post(`/legal/documents/${id}/reprocess`);
-    return response.data;
+    return response.data.data;
   },
 
   getStats: async () => {
     const response = await api.get('/legal/documents/stats');
-    return response.data;
+    return response.data.data;
   },
 
   // Terms
   getTermsByDocument: async (documentId: string) => {
     const response = await api.get(`/legal/documents/${documentId}/terms`);
-    return response.data;
+    return response.data.data;
   },
 
   getGroupedTerms: async (documentId: string) => {
     const response = await api.get(`/legal/documents/${documentId}/terms/grouped`);
-    return response.data;
+    return response.data.data;
   },
 
   searchTerms: async (params: any) => {
     const response = await api.get('/legal/terms/search', { params });
-    return response.data;
+    return response.data.data;
   },
 
   getTermStatistics: async () => {
     const response = await api.get('/legal/terms/statistics');
-    return response.data;
+    return response.data.data;
   },
 
   getLowConfidenceTerms: async (threshold?: number) => {
     const response = await api.get('/legal/terms/low-confidence', {
       params: { threshold },
     });
-    return response.data;
+    return response.data.data;
   },
 };

@@ -10,7 +10,43 @@ import { AppError, asyncHandler } from '../../../shared/middleware/error-handler
 
 export class CompanyController {
   /**
-   * Get all companies
+   * @swagger
+   * /crm/companies:
+   *   get:
+   *     summary: Get all companies with pagination and search
+   *     tags: [CRM]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 20
+   *       - in: query
+   *         name: search
+   *         schema:
+   *           type: string
+   *           description: Search by company name
+   *     responses:
+   *       200:
+   *         description: List of companies
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                 pagination:
+   *                   type: object
    */
   static getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const page = parseInt(req.query.page as string) || 1;
@@ -23,7 +59,25 @@ export class CompanyController {
   });
 
   /**
-   * Get company by ID
+   * @swagger
+   * /crm/companies/{id}:
+   *   get:
+   *     summary: Get company by ID
+   *     tags: [CRM]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *     responses:
+   *       200:
+   *         description: Company details
+   *       404:
+   *         description: Company not found
    */
   static getById = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
@@ -35,7 +89,44 @@ export class CompanyController {
   });
 
   /**
-   * Create new company
+   * @swagger
+   * /crm/companies:
+   *   post:
+   *     summary: Create a new company
+   *     tags: [CRM]
+   *     security:
+   *       - BearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - name
+   *             properties:
+   *               name:
+   *                 type: string
+   *                 example: Acme Corporation
+   *               industry:
+   *                 type: string
+   *                 example: Technology
+   *               website:
+   *                 type: string
+   *                 example: https://acme.com
+   *               phone:
+   *                 type: string
+   *                 example: "+1234567890"
+   *               email:
+   *                 type: string
+   *                 example: contact@acme.com
+   *               address:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Company created successfully
+   *       400:
+   *         description: Validation error
    */
   static create = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Validate input
@@ -53,7 +144,43 @@ export class CompanyController {
   });
 
   /**
-   * Update company
+   * @swagger
+   * /crm/companies/{id}:
+   *   put:
+   *     summary: Update company information
+   *     tags: [CRM]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 type: string
+   *               industry:
+   *                 type: string
+   *               website:
+   *                 type: string
+   *               phone:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               address:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Company updated successfully
+   *       404:
+   *         description: Company not found
    */
   static update = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Validate input
@@ -72,7 +199,25 @@ export class CompanyController {
   });
 
   /**
-   * Delete company
+   * @swagger
+   * /crm/companies/{id}:
+   *   delete:
+   *     summary: Delete a company
+   *     tags: [CRM]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *     responses:
+   *       200:
+   *         description: Company deleted successfully
+   *       404:
+   *         description: Company not found
    */
   static delete = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;

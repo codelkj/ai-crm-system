@@ -23,7 +23,7 @@ export const fetchCompanies = createAsyncThunk(
   'crm/fetchCompanies',
   async (params?: any) => {
     const response = await crmService.getCompanies(params);
-    return response.data;
+    return response;
   }
 );
 
@@ -31,7 +31,7 @@ export const fetchContacts = createAsyncThunk(
   'crm/fetchContacts',
   async (params?: any) => {
     const response = await crmService.getContacts(params);
-    return response.data;
+    return response;
   }
 );
 

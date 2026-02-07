@@ -24,24 +24,21 @@ const initialState: SalesState = {
 export const fetchKanbanBoard = createAsyncThunk(
   'sales/fetchKanbanBoard',
   async () => {
-    const response = await salesService.getKanbanBoard();
-    return response.data;
+    return await salesService.getKanbanBoard();
   }
 );
 
 export const fetchDeals = createAsyncThunk(
   'sales/fetchDeals',
   async (params?: any) => {
-    const response = await salesService.getDeals(params);
-    return response.data;
+    return await salesService.getDeals(params);
   }
 );
 
 export const fetchStages = createAsyncThunk(
   'sales/fetchStages',
   async () => {
-    const response = await salesService.getStages();
-    return response.data;
+    return await salesService.getStages();
   }
 );
 

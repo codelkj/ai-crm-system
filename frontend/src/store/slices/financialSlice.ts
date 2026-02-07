@@ -25,7 +25,7 @@ export const fetchTransactions = createAsyncThunk(
   'financial/fetchTransactions',
   async (params?: any) => {
     const response = await financialService.getTransactions(params);
-    return response.data;
+    return response;
   }
 );
 
@@ -33,7 +33,7 @@ export const fetchAccounts = createAsyncThunk(
   'financial/fetchAccounts',
   async () => {
     const response = await financialService.getAccounts();
-    return response.data;
+    return response;
   }
 );
 
@@ -41,7 +41,7 @@ export const fetchCategories = createAsyncThunk(
   'financial/fetchCategories',
   async () => {
     const response = await financialService.getCategories();
-    return response.data;
+    return response;
   }
 );
 

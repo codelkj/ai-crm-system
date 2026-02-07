@@ -25,7 +25,13 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(jq)",
+      "Bash(npm run test:db:*)",
+      "Bash(npm run:*)",
+      "Bash(timeout 3 bash -c 'until curl -s http://localhost:3000/api/v1/auth/login -X POST -H \"\"Content-Type: application/json\"\" -d \"\"{\\\\\"\"email\\\\\"\":\\\\\"\"admin@example.com\\\\\"\",\\\\\"\"password\\\\\"\":\\\\\"\"password123\\\\\"\"}\"\" 2>&1 | grep -q \"\"token\\\\|error\"\"; do sleep 0.5; done')",
+      "Bash(test:*)"
     ]
   }
 }

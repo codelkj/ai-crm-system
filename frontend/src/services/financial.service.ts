@@ -54,84 +54,84 @@ export const financialService = {
   // Bank Accounts
   getAccounts: async () => {
     const response = await api.get('/financial/accounts');
-    return response.data;
+    return response.data.data;
   },
 
   getAccount: async (id: string) => {
     const response = await api.get(`/financial/accounts/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   createAccount: async (data: Partial<BankAccount>) => {
     const response = await api.post('/financial/accounts', data);
-    return response.data;
+    return response.data.data;
   },
 
   updateAccount: async (id: string, data: Partial<BankAccount>) => {
     const response = await api.put(`/financial/accounts/${id}`, data);
-    return response.data;
+    return response.data.data;
   },
 
   deleteAccount: async (id: string) => {
     const response = await api.delete(`/financial/accounts/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   // Categories
   getCategories: async () => {
     const response = await api.get('/financial/categories');
-    return response.data;
+    return response.data.data;
   },
 
   getCategory: async (id: string) => {
     const response = await api.get(`/financial/categories/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   createCategory: async (data: Partial<Category>) => {
     const response = await api.post('/financial/categories', data);
-    return response.data;
+    return response.data.data;
   },
 
   updateCategory: async (id: string, data: Partial<Category>) => {
     const response = await api.put(`/financial/categories/${id}`, data);
-    return response.data;
+    return response.data.data;
   },
 
   deleteCategory: async (id: string) => {
     const response = await api.delete(`/financial/categories/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   // Transactions
   getTransactions: async (params?: any) => {
     const response = await api.get('/financial/transactions', { params });
-    return response.data;
+    return response.data.data;
   },
 
   getTransaction: async (id: string) => {
     const response = await api.get(`/financial/transactions/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   createTransaction: async (data: Partial<Transaction>) => {
     const response = await api.post('/financial/transactions', data);
-    return response.data;
+    return response.data.data;
   },
 
   updateTransaction: async (id: string, data: Partial<Transaction>) => {
     const response = await api.put(`/financial/transactions/${id}`, data);
-    return response.data;
+    return response.data.data;
   },
 
   deleteTransaction: async (id: string) => {
     const response = await api.delete(`/financial/transactions/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   categorizeTransaction: async (id: string) => {
     const response = await api.post(`/financial/transactions/${id}/categorize`);
-    return response.data;
+    return response.data.data;
   },
 
   importCSV: async (formData: FormData) => {
@@ -140,12 +140,12 @@ export const financialService = {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data;
+    return response.data.data;
   },
 
   getSampleCSV: async () => {
     const response = await api.get('/financial/transactions/sample-csv');
-    return response.data;
+    return response.data.data;
   },
 
   // Projections
@@ -155,11 +155,11 @@ export const financialService = {
     account_id?: string;
   }) => {
     const response = await api.post('/financial/projections/generate', params);
-    return response.data;
+    return response.data.data;
   },
 
   getProjections: async () => {
     const response = await api.get('/financial/projections');
-    return response.data;
+    return response.data.data;
   },
 };

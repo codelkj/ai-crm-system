@@ -21,7 +21,7 @@ export const fetchDocuments = createAsyncThunk(
   'legal/fetchDocuments',
   async (params?: any) => {
     const response = await legalService.getDocuments(params);
-    return response.data;
+    return response;
   }
 );
 

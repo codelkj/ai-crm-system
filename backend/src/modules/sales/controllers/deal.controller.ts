@@ -10,7 +10,39 @@ import { AppError, asyncHandler } from '../../../shared/middleware/error-handler
 
 export class DealController {
   /**
-   * Get all deals
+   * @swagger
+   * /sales/deals:
+   *   get:
+   *     summary: Get all sales deals with filtering
+   *     tags: [Sales]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 20
+   *       - in: query
+   *         name: stage_id
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *           description: Filter by pipeline stage
+   *       - in: query
+   *         name: company_id
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *           description: Filter by company
+   *     responses:
+   *       200:
+   *         description: List of deals
    */
   static getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const page = parseInt(req.query.page as string) || 1;
@@ -36,7 +68,47 @@ export class DealController {
   });
 
   /**
-   * Create new deal
+   * @swagger
+   * /sales/deals:
+   *   post:
+   *     summary: Create a new sales deal
+   *     tags: [Sales]
+   *     security:
+   *       - BearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - title
+   *               - value
+   *               - stage_id
+   *             properties:
+   *               title:
+   *                 type: string
+   *                 example: Enterprise Software Deal
+   *               value:
+   *                 type: number
+   *                 example: 50000
+   *               stage_id:
+   *                 type: string
+   *                 format: uuid
+   *               company_id:
+   *                 type: string
+   *                 format: uuid
+   *               contact_id:
+   *                 type: string
+   *                 format: uuid
+   *               expected_close_date:
+   *                 type: string
+   *                 format: date
+   *               notes:
+   *                 type: string
+   *     responses:
+   *       201:
+   *         description: Deal created successfully
    */
   static create = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Validate input
@@ -85,7 +157,36 @@ export class DealController {
   });
 
   /**
-   * Move deal to stage (for Kanban drag-and-drop)
+   * @swagger
+   * /sales/deals/{id}/move:
+   *   patch:
+   *     summary: Move deal to different pipeline stage (Kanban)
+   *     tags: [Sales]
+   *     security:
+   *       - BearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - stage_id
+   *             properties:
+   *               stage_id:
+   *                 type: string
+   *                 format: uuid
+   *                 description: Target pipeline stage
+   *     responses:
+   *       200:
+   *         description: Deal moved successfully
    */
   static moveToStage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Validate input
@@ -105,7 +206,32 @@ export class DealController {
   });
 
   /**
-   * Get Kanban board view
+   * @swagger
+   * /sales/kanban:
+   *   get:
+   *     summary: Get Kanban board view of all deals by stage
+   *     tags: [Sales]
+   *     security:
+   *       - BearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Kanban board with deals grouped by stage
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       stage_id:
+   *                         type: string
+   *                       stage_name:
+   *                         type: string
+   *                       deals:
+   *                         type: array
    */
   static getKanbanView = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const kanbanData = await DealService.getKanbanView();

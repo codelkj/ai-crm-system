@@ -11,7 +11,57 @@ import { AuthRequest } from '../../../shared/middleware/authenticate';
 
 export class AuthController {
   /**
-   * Register new user
+   * @swagger
+   * /auth/register:
+   *   post:
+   *     summary: Register a new user account
+   *     tags: [Authentication]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - email
+   *               - password
+   *               - first_name
+   *               - last_name
+   *             properties:
+   *               email:
+   *                 type: string
+   *                 format: email
+   *                 example: user@example.com
+   *               password:
+   *                 type: string
+   *                 format: password
+   *                 minLength: 6
+   *                 example: SecurePass123!
+   *               first_name:
+   *                 type: string
+   *                 example: John
+   *               last_name:
+   *                 type: string
+   *                 example: Doe
+   *     responses:
+   *       201:
+   *         description: User registered successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     user:
+   *                       $ref: '#/components/schemas/User'
+   *                     token:
+   *                       type: string
+   *       400:
+   *         description: Validation error
+   *       409:
+   *         description: Email already exists
    */
   static register = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Validate input
@@ -29,7 +79,49 @@ export class AuthController {
   });
 
   /**
-   * Login user
+   * @swagger
+   * /auth/login:
+   *   post:
+   *     summary: Login to existing account
+   *     tags: [Authentication]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - email
+   *               - password
+   *             properties:
+   *               email:
+   *                 type: string
+   *                 format: email
+   *                 example: user@example.com
+   *               password:
+   *                 type: string
+   *                 format: password
+   *                 example: SecurePass123!
+   *     responses:
+   *       200:
+   *         description: Login successful
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     user:
+   *                       $ref: '#/components/schemas/User'
+   *                     token:
+   *                       type: string
+   *                       description: JWT token for authentication
+   *       400:
+   *         description: Validation error
+   *       401:
+   *         description: Invalid credentials
    */
   static login = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Validate input
@@ -47,7 +139,25 @@ export class AuthController {
   });
 
   /**
-   * Get current user profile
+   * @swagger
+   * /auth/me:
+   *   get:
+   *     summary: Get current user profile
+   *     tags: [Authentication]
+   *     security:
+   *       - BearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Current user profile
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 data:
+   *                   $ref: '#/components/schemas/User'
+   *       401:
+   *         description: Unauthorized
    */
   static me = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {

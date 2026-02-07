@@ -419,31 +419,28 @@ export class DealService {
   /**
    * Get Kanban view - deals grouped by stage
    */
-  static async getKanbanView(): Promise<KanbanBoardResponse> {
+  static async getKanbanView(): Promise<any> {
     await initializeDeals();
 
     // Get all stages
     const stages = await PipelineStageService.getAll();
 
-    // Build columns
-    const columns: KanbanColumn[] = stages.map((stage) => {
+    // Attach deals to each stage
+    const stagesWithDeals = stages.map((stage) => {
       const stageDeals = mockDeals.filter((d) => d.stage_id === stage.id);
-      const totalValue = stageDeals.reduce((sum, deal) => sum + deal.value, 0);
-
       return {
-        stage,
+        ...stage,
         deals: stageDeals.sort((a, b) => b.created_at.getTime() - a.created_at.getTime()),
-        totalValue,
       };
     });
 
     // Calculate totals
-    const totalDeals = mockDeals.length;
+    const dealCount = mockDeals.length;
     const totalValue = mockDeals.reduce((sum, deal) => sum + deal.value, 0);
 
     return {
-      columns,
-      totalDeals,
+      stages: stagesWithDeals,
+      dealCount,
       totalValue,
     };
   }

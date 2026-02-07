@@ -12,6 +12,17 @@ import { AppError } from '../../../shared/middleware/error-handler';
 const mockUsers: User[] = [
   {
     id: uuidv4(),
+    email: 'admin@example.com',
+    password_hash: '$2a$10$FOhnnWYYj8YQtJTgemCKKeljbA0kjXbJ7BdJA9V6WXpv8u6HLzRqS', // password123
+    first_name: 'Admin',
+    last_name: 'User',
+    role: 'admin',
+    is_active: true,
+    created_at: new Date(),
+    updated_at: new Date(),
+  },
+  {
+    id: uuidv4(),
     email: 'admin@crm.com',
     password_hash: '$2b$10$rKvK8w9qJ7qZ5xYz5QqN4.vQ8xH6xN7X5Z9K8vQ8xH6xN7X5Z9K8v', // Admin123!
     first_name: 'Admin',
