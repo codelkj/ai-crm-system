@@ -136,7 +136,10 @@ Focus on:
 3. Opportunities for budget optimization
 4. Risk periods to watch out for
 
-Return ONLY a JSON array of 3-4 short insight strings (max 100 chars each).`;
+IMPORTANT: Return ONLY a valid JSON array format like this example:
+["First insight here", "Second insight here", "Third insight here"]
+
+Each insight should be max 100 characters. No object format, only array format.`;
 
       const completion = await openai.chat.completions.create({
         model: 'gpt-4',
@@ -152,9 +155,19 @@ Return ONLY a JSON array of 3-4 short insight strings (max 100 chars each).`;
       });
 
       const content = completion.choices[0]?.message?.content || '[]';
-      const insights = JSON.parse(content);
+      let insights = JSON.parse(content);
 
-      return Array.isArray(insights) ? insights : this.generateFallbackInsights(patterns);
+      // Handle if AI returns an object instead of array
+      if (!Array.isArray(insights)) {
+        if (typeof insights === 'object' && insights !== null) {
+          // Convert object values to array (e.g., {"Insight 1": "...", "Insight 2": "..."} -> ["...", "..."])
+          insights = Object.values(insights);
+        } else {
+          insights = this.generateFallbackInsights(patterns);
+        }
+      }
+
+      return Array.isArray(insights) && insights.length > 0 ? insights : this.generateFallbackInsights(patterns);
     } catch (error) {
       console.error('Error generating seasonal insights:', error);
       return this.generateFallbackInsights(patterns);

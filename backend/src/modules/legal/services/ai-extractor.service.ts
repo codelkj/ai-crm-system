@@ -1,13 +1,16 @@
 /**
- * AI Extractor Service - Mock AI Processing
- * Simulates GPT-4 extraction without API calls
+ * AI Extractor Service - Real OpenAI Integration
+ * Extracts legal terms from PDF documents using OpenAI GPT-4
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
+import pdfParse from 'pdf-parse';
+import { getOpenAIClient } from '../../../config/ai';
 import { ExtractedTerm } from '../types/legal.types';
-// Prompts are referenced in comments for production use
-// import { LEGAL_EXTRACTION_PROMPT, LEGAL_SUMMARY_PROMPT } from '../prompts/extraction.prompt';
+import { LEGAL_EXTRACTION_PROMPT, LEGAL_SUMMARY_PROMPT } from '../prompts/extraction.prompt';
 
-interface MockExtractionResult {
+interface AIExtractionResult {
   terms: Array<{
     term_type: 'party' | 'date' | 'obligation' | 'amount' | 'clause';
     term_key: string;
@@ -15,334 +18,234 @@ interface MockExtractionResult {
     confidence: number;
     page_number?: number;
   }>;
-  summary: string;
 }
 
 export class AIExtractorService {
   /**
-   * Mock AI extraction - generates realistic extracted terms based on document title
-   * In production, this would call OpenAI API with LEGAL_EXTRACTION_PROMPT
+   * Extract text from PDF file
+   */
+  private static async extractTextFromPDF(filePath: string): Promise<{ text: string; numPages: number }> {
+    try {
+      const dataBuffer = fs.readFileSync(filePath);
+      const data = await pdfParse(dataBuffer);
+
+      return {
+        text: data.text,
+        numPages: data.numpages
+      };
+    } catch (error: any) {
+      console.error('PDF parsing error:', error);
+      throw new Error(`Failed to extract text from PDF: ${error.message}`);
+    }
+  }
+
+  /**
+   * Extract legal terms from document using OpenAI
    */
   static async extractTerms(
     documentId: string,
     documentTitle: string,
-    documentType: string
+    documentType: string,
+    filePath?: string
   ): Promise<{ terms: Omit<ExtractedTerm, 'id' | 'created_at'>[]; summary: string }> {
-    // Simulate AI processing delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const openai = getOpenAIClient();
 
-    const mockData = this.generateMockExtraction(documentTitle, documentType);
+    // Extract text from PDF if file path provided
+    let documentText = '';
+    if (filePath && fs.existsSync(filePath)) {
+      const pdfData = await this.extractTextFromPDF(filePath);
+      documentText = pdfData.text;
 
-    // Transform mock data to ExtractedTerm format
-    const terms = mockData.terms.map((term) => ({
-      document_id: documentId,
-      term_type: term.term_type,
-      term_key: term.term_key,
-      term_value: term.term_value,
-      confidence: term.confidence,
-      page_number: term.page_number,
-    }));
+      // Limit text size to avoid token limits (max ~30k characters ≈ 7.5k tokens)
+      if (documentText.length > 30000) {
+        documentText = documentText.substring(0, 30000);
+        console.warn(`Document text truncated to 30k characters for AI processing`);
+      }
+    }
 
-    return {
-      terms,
-      summary: mockData.summary,
-    };
+    if (!documentText) {
+      throw new Error('No document text available for extraction');
+    }
+
+    if (!openai) {
+      console.warn('OpenAI not configured, using fallback extraction');
+      return this.fallbackExtraction(documentTitle, documentType);
+    }
+
+    try {
+      // Extract terms using OpenAI
+      const extractedTerms = await this.callOpenAIForExtraction(documentText);
+
+      // Generate summary using OpenAI
+      const summary = await this.callOpenAIForSummary(documentText, documentTitle, documentType);
+
+      // Transform to database format
+      const terms = extractedTerms.map((term) => ({
+        document_id: documentId,
+        term_type: term.term_type,
+        term_key: term.term_key,
+        term_value: term.term_value,
+        confidence: term.confidence,
+        page_number: term.page_number,
+      }));
+
+      return {
+        terms,
+        summary,
+      };
+    } catch (error: any) {
+      console.error('AI extraction failed, using fallback:', error);
+      return this.fallbackExtraction(documentTitle, documentType);
+    }
   }
 
   /**
-   * Generate mock extraction results based on document title and type
+   * Call OpenAI API for term extraction
    */
-  private static generateMockExtraction(title: string, docType: string): MockExtractionResult {
-    const titleLower = title.toLowerCase();
-
-    // Generate contextual terms based on document title
-    const terms: MockExtractionResult['terms'] = [];
-
-    // Parties
-    if (titleLower.includes('service') || titleLower.includes('agreement')) {
-      terms.push(
-        {
-          term_type: 'party',
-          term_key: 'client_name',
-          term_value: 'Acme Corporation',
-          confidence: 0.95,
-          page_number: 1,
-        },
-        {
-          term_type: 'party',
-          term_key: 'vendor_name',
-          term_value: 'TechStart Inc',
-          confidence: 0.93,
-          page_number: 1,
-        }
-      );
-    } else if (titleLower.includes('employment') || titleLower.includes('nda')) {
-      terms.push(
-        {
-          term_type: 'party',
-          term_key: 'employer_name',
-          term_value: 'Global Solutions LLC',
-          confidence: 0.96,
-          page_number: 1,
-        },
-        {
-          term_type: 'party',
-          term_key: 'employee_name',
-          term_value: 'John Smith',
-          confidence: 0.94,
-          page_number: 1,
-        }
-      );
-    } else {
-      terms.push(
-        {
-          term_type: 'party',
-          term_key: 'party_a',
-          term_value: 'First Party LLC',
-          confidence: 0.92,
-          page_number: 1,
-        },
-        {
-          term_type: 'party',
-          term_key: 'party_b',
-          term_value: 'Second Party Inc',
-          confidence: 0.91,
-          page_number: 1,
-        }
-      );
+  private static async callOpenAIForExtraction(documentText: string): Promise<AIExtractionResult['terms']> {
+    const openai = getOpenAIClient();
+    if (!openai) {
+      throw new Error('OpenAI not configured');
     }
 
-    // Dates
-    const currentDate = new Date();
-    const effectiveDate = new Date(currentDate);
-    effectiveDate.setDate(currentDate.getDate() - 30);
-    const terminationDate = new Date(currentDate);
-    terminationDate.setFullYear(currentDate.getFullYear() + 1);
-    const renewalDate = new Date(terminationDate);
-    renewalDate.setDate(terminationDate.getDate() - 30);
+    const prompt = LEGAL_EXTRACTION_PROMPT.replace('{document_text}', documentText);
 
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4-turbo-preview',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a legal document analysis expert. Extract structured data from legal documents in valid JSON format.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.2, // Low temperature for consistent extraction
+        max_tokens: 4000,
+        response_format: { type: 'json_object' }
+      });
+
+      const responseText = completion.choices[0].message.content;
+      if (!responseText) {
+        throw new Error('Empty response from OpenAI');
+      }
+
+      // Parse JSON response
+      const result: AIExtractionResult = JSON.parse(responseText);
+
+      // Validate response structure
+      if (!result.terms || !Array.isArray(result.terms)) {
+        throw new Error('Invalid response structure: missing terms array');
+      }
+
+      // Validate each term
+      const validTerms = result.terms.filter(term => {
+        return (
+          term.term_type &&
+          term.term_key &&
+          term.term_value &&
+          typeof term.confidence === 'number' &&
+          term.confidence >= 0 &&
+          term.confidence <= 1
+        );
+      });
+
+      if (validTerms.length === 0) {
+        throw new Error('No valid terms extracted from response');
+      }
+
+      return validTerms;
+    } catch (error: any) {
+      console.error('OpenAI extraction error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Call OpenAI API for document summary
+   */
+  private static async callOpenAIForSummary(
+    documentText: string,
+    documentTitle: string,
+    documentType: string
+  ): Promise<string> {
+    const openai = getOpenAIClient();
+    if (!openai) {
+      return `${documentType} titled "${documentTitle}" - AI summary unavailable`;
+    }
+
+    const prompt = LEGAL_SUMMARY_PROMPT.replace('{document_text}', documentText);
+
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4-turbo-preview',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a legal document summarization expert. Provide clear, concise summaries of legal documents.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 800
+      });
+
+      const summary = completion.choices[0].message.content;
+      return summary || `${documentType} titled "${documentTitle}"`;
+    } catch (error: any) {
+      console.error('OpenAI summary error:', error);
+      return `${documentType} titled "${documentTitle}" - Summary generation failed`;
+    }
+  }
+
+  /**
+   * Fallback extraction when AI is unavailable
+   * Uses simple heuristics to extract basic information
+   */
+  private static fallbackExtraction(
+    title: string,
+    docType: string
+  ): { terms: Omit<ExtractedTerm, 'id' | 'created_at'>[]; summary: string } {
+    const documentId = 'temp'; // Will be replaced by caller
+
+    const terms: Omit<ExtractedTerm, 'id' | 'created_at'>[] = [];
+
+    // Add basic placeholder terms
     terms.push(
       {
+        document_id: documentId,
+        term_type: 'party',
+        term_key: 'party_a',
+        term_value: 'Party A (extraction pending)',
+        confidence: 0.3,
+        page_number: 1,
+      },
+      {
+        document_id: documentId,
+        term_type: 'party',
+        term_key: 'party_b',
+        term_value: 'Party B (extraction pending)',
+        confidence: 0.3,
+        page_number: 1,
+      },
+      {
+        document_id: documentId,
         term_type: 'date',
         term_key: 'effective_date',
-        term_value: effectiveDate.toISOString().split('T')[0],
-        confidence: 0.97,
+        term_value: new Date().toISOString().split('T')[0],
+        confidence: 0.2,
         page_number: 1,
-      },
-      {
-        term_type: 'date',
-        term_key: 'termination_date',
-        term_value: terminationDate.toISOString().split('T')[0],
-        confidence: 0.95,
-        page_number: 1,
-      },
-      {
-        term_type: 'date',
-        term_key: 'renewal_date',
-        term_value: renewalDate.toISOString().split('T')[0],
-        confidence: 0.89,
-        page_number: 5,
       }
     );
 
-    // Amounts
-    if (titleLower.includes('service') || titleLower.includes('consulting')) {
-      terms.push(
-        {
-          term_type: 'amount',
-          term_key: 'contract_value',
-          term_value: '$150,000.00',
-          confidence: 0.98,
-          page_number: 2,
-        },
-        {
-          term_type: 'amount',
-          term_key: 'monthly_fee',
-          term_value: '$12,500.00',
-          confidence: 0.96,
-          page_number: 2,
-        },
-        {
-          term_type: 'amount',
-          term_key: 'late_payment_penalty',
-          term_value: '1.5% per month',
-          confidence: 0.87,
-          page_number: 3,
-        }
-      );
-    } else if (titleLower.includes('license')) {
-      terms.push(
-        {
-          term_type: 'amount',
-          term_key: 'license_fee',
-          term_value: '$75,000.00',
-          confidence: 0.97,
-          page_number: 2,
-        },
-        {
-          term_type: 'amount',
-          term_key: 'annual_maintenance',
-          term_value: '$15,000.00',
-          confidence: 0.94,
-          page_number: 2,
-        }
-      );
-    } else {
-      terms.push(
-        {
-          term_type: 'amount',
-          term_key: 'total_value',
-          term_value: '$100,000.00',
-          confidence: 0.95,
-          page_number: 2,
-        }
-      );
-    }
-
-    // Obligations
-    if (titleLower.includes('service')) {
-      terms.push(
-        {
-          term_type: 'obligation',
-          term_key: 'payment_terms',
-          term_value: 'Net 30 days from invoice date',
-          confidence: 0.93,
-          page_number: 3,
-        },
-        {
-          term_type: 'obligation',
-          term_key: 'deliverables',
-          term_value: 'Monthly status reports, quarterly reviews, and project documentation',
-          confidence: 0.91,
-          page_number: 3,
-        },
-        {
-          term_type: 'obligation',
-          term_key: 'service_level',
-          term_value: '99.5% uptime guarantee with 24/7 support',
-          confidence: 0.88,
-          page_number: 4,
-        }
-      );
-    } else if (titleLower.includes('employment')) {
-      terms.push(
-        {
-          term_type: 'obligation',
-          term_key: 'work_hours',
-          term_value: '40 hours per week, Monday to Friday',
-          confidence: 0.94,
-          page_number: 2,
-        },
-        {
-          term_type: 'obligation',
-          term_key: 'benefits',
-          term_value: 'Health insurance, 401(k) matching, paid time off',
-          confidence: 0.90,
-          page_number: 3,
-        }
-      );
-    } else {
-      terms.push(
-        {
-          term_type: 'obligation',
-          term_key: 'payment_schedule',
-          term_value: 'Quarterly installments',
-          confidence: 0.92,
-          page_number: 2,
-        },
-        {
-          term_type: 'obligation',
-          term_key: 'performance_requirements',
-          term_value: 'Meet agreed-upon milestones and quality standards',
-          confidence: 0.89,
-          page_number: 3,
-        }
-      );
-    }
-
-    // Clauses
-    terms.push(
-      {
-        term_type: 'clause',
-        term_key: 'confidentiality',
-        term_value:
-          'Both parties agree to maintain confidentiality of proprietary information for 3 years',
-        confidence: 0.96,
-        page_number: 5,
-      },
-      {
-        term_type: 'clause',
-        term_key: 'termination',
-        term_value: 'Either party may terminate with 60 days written notice',
-        confidence: 0.94,
-        page_number: 6,
-      },
-      {
-        term_type: 'clause',
-        term_key: 'liability',
-        term_value: 'Liability limited to contract value, excluding gross negligence',
-        confidence: 0.91,
-        page_number: 7,
-      },
-      {
-        term_type: 'clause',
-        term_key: 'governing_law',
-        term_value: 'State of California, USA',
-        confidence: 0.97,
-        page_number: 8,
-      },
-      {
-        term_type: 'clause',
-        term_key: 'dispute_resolution',
-        term_value: 'Binding arbitration in accordance with AAA rules',
-        confidence: 0.88,
-        page_number: 8,
-      }
-    );
-
-    // Generate summary
-    const summary = this.generateMockSummary(title, docType, terms);
+    const summary = `${docType} titled "${title}". AI extraction unavailable - please configure OpenAI API key for detailed term extraction and document summarization.`;
 
     return { terms, summary };
-  }
-
-  /**
-   * Generate mock document summary
-   */
-  private static generateMockSummary(
-    title: string,
-    docType: string,
-    terms: MockExtractionResult['terms']
-  ): string {
-    const parties = terms.filter((t) => t.term_type === 'party');
-    const dates = terms.filter((t) => t.term_type === 'date');
-    const amounts = terms.filter((t) => t.term_type === 'amount');
-
-    const partyNames = parties.map((p) => p.term_value).join(' and ');
-    const effectiveDate = dates.find((d) => d.term_key === 'effective_date')?.term_value;
-    const terminationDate = dates.find((d) => d.term_key === 'termination_date')?.term_value;
-    const contractValue = amounts.find((a) => a.term_key.includes('value') || a.term_key.includes('fee'))
-      ?.term_value;
-
-    return `This ${docType} titled "${title}" is an agreement between ${partyNames}.
-The contract is effective from ${effectiveDate} and remains valid until ${terminationDate}.
-${contractValue ? `The total contract value is ${contractValue}.` : ''}
-
-The agreement outlines key obligations including payment terms, deliverables, and service level commitments.
-It includes standard clauses for confidentiality, termination rights, liability limitations, and dispute resolution.
-
-The document specifies governing law and includes provisions for contract renewal and modification.
-Both parties are bound by confidentiality obligations extending beyond the contract term.
-
-Key terms include specific performance requirements, payment schedules, and termination conditions.
-The agreement provides for dispute resolution through binding arbitration and includes limitations on liability.`;
-  }
-
-  /**
-   * In production, this would call OpenAI API
-   * For now, it returns a note about mock processing
-   */
-  static getMockProcessingNote(): string {
-    return 'Note: Using mock AI extraction. In production, this would use OpenAI GPT-4 with the LEGAL_EXTRACTION_PROMPT.';
   }
 }
