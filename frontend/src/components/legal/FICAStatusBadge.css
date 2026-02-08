@@ -1,0 +1,93 @@
+/**
+ * FICA Status Badge Styles
+ */
+
+.fica-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  white-space: nowrap;
+}
+
+/* Size variants */
+.fica-status-badge--small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.fica-status-badge--medium {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.fica-status-badge--large {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+/* Status: Complete (Green) */
+.fica-status-complete {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.fica-status-complete .fica-status-badge__icon {
+  color: #059669;
+}
+
+/* Status: In Progress (Blue) */
+.fica-status-in-progress {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.fica-status-in-progress .fica-status-badge__icon {
+  color: #3b82f6;
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Status: Exception (Orange) */
+.fica-status-exception {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+.fica-status-exception .fica-status-badge__icon {
+  color: #ea580c;
+}
+
+/* Status: Not Started (Gray) */
+.fica-status-not-started {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.fica-status-not-started .fica-status-badge__icon {
+  color: #6b7280;
+}
+
+.fica-status-badge__icon {
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.fica-status-badge__label {
+  font-weight: 500;
+}

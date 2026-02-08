@@ -1,0 +1,73 @@
+/**
+ * Risk Rating Badge Styles
+ */
+
+.risk-rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  white-space: nowrap;
+}
+
+/* Size variants */
+.risk-rating-badge--small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.risk-rating-badge--medium {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.risk-rating-badge--large {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+/* Risk: Low (Green) */
+.risk-rating-low {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.risk-rating-low .risk-rating-badge__icon {
+  color: #059669;
+}
+
+/* Risk: Medium (Orange) */
+.risk-rating-medium {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+.risk-rating-medium .risk-rating-badge__icon {
+  color: #ea580c;
+}
+
+/* Risk: High (Red) */
+.risk-rating-high {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+
+.risk-rating-high .risk-rating-badge__icon {
+  color: #dc2626;
+}
+
+.risk-rating-badge__icon {
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.risk-rating-badge__label {
+  font-weight: 500;
+}
