@@ -99,9 +99,9 @@ const Financials: React.FC = () => {
                     ? '#ef6c00'
                     : '#c62828',
               }}
-              title={`AI Confidence: ${(row.ai_confidence * 100).toFixed(0)}%`}
+              title={`AI Confidence: ${(row.ai_confidence * 100).toFixed(2)}%`}
             >
-              🤖 {(row.ai_confidence * 100).toFixed(0)}%
+              🤖 {(row.ai_confidence * 100).toFixed(2)}%
             </span>
           )}
         </div>

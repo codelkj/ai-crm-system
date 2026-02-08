@@ -1,32 +1,43 @@
-/* AI Assistant Styles */
+/* Nexus AI Assistant - LegalNexus Practice Intelligence */
 
-.ai-assistant-toggle {
+.ai-assistant-toggle.nexus {
   position: fixed;
   bottom: 24px;
   right: 24px;
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
   color: white;
   font-size: 28px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
   z-index: 1000;
+  animation: pulse 2s infinite;
 }
 
-.ai-assistant-toggle:hover {
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 4px 30px rgba(59, 130, 246, 0.7);
+  }
+}
+
+.ai-assistant-toggle.nexus:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  box-shadow: 0 6px 30px rgba(59, 130, 246, 0.8);
 }
 
-.ai-assistant-toggle.open {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+.ai-assistant-toggle.nexus.open {
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  color: white;
 }
 
 .ai-assistant-window {
@@ -55,14 +66,15 @@
   }
 }
 
-.ai-assistant-header {
+.ai-assistant-header.nexus-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
   color: white;
   border-radius: 16px 16px 0 0;
+  border-bottom: 3px solid #60a5fa;
 }
 
 .ai-assistant-header-title {
@@ -326,4 +338,46 @@
 
 .ai-assistant-messages::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+/* Nexus AI - LegalNexus Practice Intelligence Branding */
+
+.nexus-tagline {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: block;
+  margin-top: 2px;
+}
+
+.nexus-avatar {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  }
+  to {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+  }
+}
+
+.message-avatar.nexus-avatar {
+  border: 2px solid #3b82f6;
+}
+
+/* Professional Intelligence Theme */
+.ai-assistant-window .suggestion-chip {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  color: white;
+  border: 1px solid #60a5fa;
+}
+
+.ai-assistant-window .suggestion-chip:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
+  border-color: #93c5fd;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
 }

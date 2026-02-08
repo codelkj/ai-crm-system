@@ -23,6 +23,7 @@ import invoicingRoutes from './modules/invoicing/routes/invoicing.routes';
 import timeTrackingRoutes from './modules/time-tracking/routes/time-tracking.routes';
 import mattersRoutes from './modules/sales/routes/matters.routes';
 import aiRoutes from './modules/ai/routes/ai.routes';
+import reportingRoutes from './modules/reporting/routes/reporting.routes';
 
 const app = express();
 
@@ -64,7 +65,8 @@ app.get('/', (req, res) => {
       timeTracking: '/api/v1/time-tracking',
       matters: '/api/v1/matters',
       lightningPath: '/api/v1/matters/lightning-path',
-      aiInsights: '/api/v1/ai'
+      aiInsights: '/api/v1/ai',
+      reporting: '/api/v1/reporting'
     },
     documentation: {
       swagger: '/api/v1/docs',
@@ -120,6 +122,7 @@ app.use('/api/v1/invoicing', invoicingRoutes);
 app.use('/api/v1/time-tracking', timeTrackingRoutes);
 app.use('/api/v1/matters', mattersRoutes);
 app.use('/api/v1/ai', aiRoutes);
+app.use('/api/v1/reporting', reportingRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

@@ -1,6 +1,6 @@
 /**
- * AI Assistant Chat Component
- * Floating chat widget for interacting with AI assistant
+ * Nexus AI Assistant - LegalNexus Practice Intelligence
+ * Floating chat widget powered by AI-driven legal practice analytics
  */
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -15,9 +15,10 @@ const AIAssistant: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([
-    'Show me key metrics',
-    'What should I focus on today?',
-    'Analyze my spending patterns'
+    'Analyze billing inertia and unbilled time',
+    'Review matter health and burn rates',
+    'Show attorney workload distribution',
+    'Which matters need attention today?'
   ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +98,7 @@ const AIAssistant: React.FC = () => {
     if (!isOpen && messages.length === 0) {
       const welcomeMessage: Message = {
         role: 'assistant',
-        content: "👋 Hi! I'm your AI assistant. I can help you analyze your CRM data, sales pipeline, financial transactions, and provide insights. What would you like to know?",
+        content: "Nexus AI activated. I provide real-time analysis of matter health, billing inertia, attorney workload, and practice performance metrics. Ask me about your firm's operational data or request specific insights.",
         timestamp: new Date().toISOString()
       };
       setMessages([welcomeMessage]);
@@ -108,20 +109,23 @@ const AIAssistant: React.FC = () => {
     <>
       {/* Chat Widget Button */}
       <button
-        className={`ai-assistant-toggle ${isOpen ? 'open' : ''}`}
+        className={`ai-assistant-toggle nexus ${isOpen ? 'open' : ''}`}
         onClick={toggleChat}
-        title="AI Assistant"
+        title="Nexus AI - Practice Intelligence"
       >
-        {isOpen ? '✕' : '🤖'}
+        {isOpen ? '✕' : '🧠'}
       </button>
 
       {/* Chat Window */}
       {isOpen && (
         <div className="ai-assistant-window">
-          <div className="ai-assistant-header">
+          <div className="ai-assistant-header nexus-header">
             <div className="ai-assistant-header-title">
-              <span className="ai-assistant-icon">🤖</span>
-              <h3>AI Assistant</h3>
+              <span className="ai-assistant-icon">🧠</span>
+              <div>
+                <h3>Nexus AI</h3>
+                <span className="nexus-tagline">Practice Intelligence</span>
+              </div>
             </div>
             <button
               className="ai-assistant-close"
@@ -139,7 +143,7 @@ const AIAssistant: React.FC = () => {
                 className={`ai-assistant-message ${message.role}`}
               >
                 {message.role === 'assistant' && (
-                  <div className="message-avatar">🤖</div>
+                  <div className="message-avatar nexus-avatar">🧠</div>
                 )}
                 <div className="message-content">
                   <div className="message-text">{message.content}</div>
@@ -160,7 +164,7 @@ const AIAssistant: React.FC = () => {
 
             {loading && (
               <div className="ai-assistant-message assistant">
-                <div className="message-avatar">🤖</div>
+                <div className="message-avatar nexus-avatar">🧠</div>
                 <div className="message-content">
                   <div className="typing-indicator">
                     <span></span>

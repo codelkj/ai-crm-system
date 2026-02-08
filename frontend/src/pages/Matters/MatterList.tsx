@@ -213,10 +213,10 @@ const MatterList: React.FC = () => {
                     <td>
                       {matter.budget_hours ? (
                         <span>
-                          {matter.actual_hours.toFixed(1)} / {matter.budget_hours} hrs
+                          {Number(matter.actual_hours || 0).toFixed(2)} / {matter.budget_hours} hrs
                           <br />
                           <small style={{ color: '#6b7280' }}>
-                            R {matter.actual_amount.toLocaleString()} / R {(matter.budget_amount || 0).toLocaleString()}
+                            R {Number(matter.actual_amount || 0).toLocaleString()} / R {Number(matter.budget_amount || 0).toLocaleString()}
                           </small>
                         </span>
                       ) : '-'}
@@ -226,7 +226,7 @@ const MatterList: React.FC = () => {
                         color: getHealthStatusColor(matter.health_status),
                         fontWeight: '600'
                       }}>
-                        {matter.burn_rate.toFixed(0)}%
+                        {Number(matter.burn_rate || 0).toFixed(2)}%
                       </span>
                     </td>
                     <td>

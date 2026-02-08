@@ -129,74 +129,115 @@ export class AssistantService {
   }
 
   /**
-   * Gather context about user's data
+   * Gather context about user's data (LegalNexus)
    */
   private static async gatherUserContext(userId: string): Promise<any> {
     try {
-      // Get companies summary
-      const companiesResult = await pool.query(
-        `SELECT COUNT(*) as total
-         FROM companies`
-      );
+      // Get user's firm_id
+      const userResult = await pool.query('SELECT firm_id FROM users WHERE id = $1', [userId]);
+      const firmId = userResult.rows[0]?.firm_id;
 
-      // Get contacts summary
-      const contactsResult = await pool.query(
-        `SELECT COUNT(*) as total FROM contacts`
-      );
+      if (!firmId) {
+        throw new Error('User firm not found');
+      }
 
-      // Get deals summary
-      const dealsResult = await pool.query(
-        `SELECT COUNT(*) as total,
-                COALESCE(SUM(value), 0) as total_value,
-                ps.name as stage
-         FROM deals d
-         LEFT JOIN pipeline_stages ps ON d.stage_id = ps.id
-         GROUP BY ps.name`
-      );
-
-      // Get recent transactions
-      const transactionsResult = await pool.query(
+      // Get matters summary
+      const mattersResult = await pool.query(
         `SELECT
           COUNT(*) as total,
-          COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END), 0) as total_income,
-          COALESCE(SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END), 0) as total_expenses
-         FROM transactions t
-         WHERE t.date >= CURRENT_DATE - INTERVAL '30 days'`
+          COUNT(*) FILTER (WHERE health_status = 'red') as critical,
+          ROUND(AVG(CAST(burn_rate AS NUMERIC)), 2) as avg_burn_rate
+         FROM deals
+         WHERE firm_id = $1 AND matter_status = 'active'`,
+        [firmId]
       );
 
-      // Get activities
-      const activitiesResult = await pool.query(
-        `SELECT COUNT(*) as total, type
-         FROM activities
-         WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
-         GROUP BY type`
+      // Get billing inertia (unbilled time) - aggregate and top offenders
+      const inertiaResult = await pool.query(
+        `SELECT
+          COUNT(DISTINCT user_id) as attorneys_with_unbilled,
+          ROUND(SUM(duration_minutes / 60.0), 2) as total_unbilled_hours,
+          ROUND(SUM(amount), 2) as total_unbilled_amount
+         FROM time_entries
+         WHERE firm_id = $1 AND billable = true AND billed = false`,
+        [firmId]
       );
 
-      const companies = companiesResult.rows[0] || { total: 0 };
-      const contacts = contactsResult.rows[0] || { total: 0 };
-      const transactions = transactionsResult.rows[0] || { total: 0, total_income: 0, total_expenses: 0 };
-      const deals = dealsResult.rows;
-      const activities = activitiesResult.rows;
+      // Get top 5 attorneys with oldest unbilled time
+      const topInertiaResult = await pool.query(
+        `SELECT
+          u.id as user_id,
+          CONCAT(u.first_name, ' ', u.last_name) as name,
+          ROUND(COALESCE(SUM(te.duration_minutes / 60.0), 0), 2) as unbilled_hours,
+          ROUND(COALESCE(SUM((te.duration_minutes / 60.0) * u.hourly_rate), 0), 2) as unbilled_amount,
+          MIN(te.entry_date)::text as oldest_unbilled_date,
+          EXTRACT(DAY FROM NOW() - MIN(te.entry_date))::integer as days_overdue
+        FROM users u
+        INNER JOIN time_entries te ON u.id = te.user_id
+        WHERE u.firm_id = $1
+          AND te.billable = true
+          AND te.billed = false
+        GROUP BY u.id, u.first_name, u.last_name, u.hourly_rate
+        HAVING EXTRACT(DAY FROM NOW() - MIN(te.entry_date)) >= 14
+        ORDER BY MIN(te.entry_date) ASC
+        LIMIT 5`,
+        [firmId]
+      );
+
+      // Get attorney workload (current month)
+      const workloadResult = await pool.query(
+        `SELECT
+          COUNT(*) as total_attorneys,
+          ROUND(AVG(hours), 2) as avg_hours_logged
+         FROM (
+           SELECT u.id, SUM(te.duration_minutes / 60.0) as hours
+           FROM users u
+           LEFT JOIN time_entries te ON u.id = te.user_id
+             AND te.entry_date >= DATE_TRUNC('month', CURRENT_DATE)
+           WHERE u.firm_id = $1 AND u.is_attorney = true
+           GROUP BY u.id
+         ) attorney_hours`,
+        [firmId]
+      );
+
+      // Get revenue summary (last 30 days)
+      const revenueResult = await pool.query(
+        `SELECT
+          ROUND(SUM(te.amount), 2) as total_revenue,
+          ROUND(SUM(te.duration_minutes / 60.0), 2) as total_hours
+         FROM time_entries te
+         WHERE te.firm_id = $1
+           AND te.billable = true
+           AND te.entry_date >= CURRENT_DATE - INTERVAL '30 days'`,
+        [firmId]
+      );
+
+      const matters = mattersResult.rows[0] || { total: 0, critical: 0, avg_burn_rate: 0 };
+      const inertia = inertiaResult.rows[0] || { attorneys_with_unbilled: 0, total_unbilled_hours: 0, total_unbilled_amount: 0 };
+      const workload = workloadResult.rows[0] || { total_attorneys: 0, avg_hours_logged: 0 };
+      const revenue = revenueResult.rows[0] || { total_revenue: 0, total_hours: 0 };
+      const topInertia = topInertiaResult.rows || [];
+
+      // Format top inertia attorneys for context
+      const inertiaDetails = topInertia.length > 0
+        ? topInertia.map(a => `${a.name}: ${a.unbilled_hours}hrs (R${Number(a.unbilled_amount).toLocaleString()}), oldest entry ${a.days_overdue} days ago`).join('; ')
+        : 'No overdue unbilled time';
 
       return {
-        companiesSummary: `${companies.total} companies`,
-        contactsSummary: `${contacts.total} contacts`,
-        dealsSummary: deals.length > 0
-          ? deals.map(d => `${d.total} deals in ${d.stage} worth $${Number(d.total_value).toLocaleString()}`).join(', ')
-          : '0 deals',
-        transactionsSummary: `${transactions.total} transactions in last 30 days: $${Number(transactions.total_income).toLocaleString()} income, $${Number(transactions.total_expenses).toLocaleString()} expenses`,
-        activitiesSummary: activities.length > 0
-          ? activities.map(a => `${a.total} ${a.type} activities`).join(', ')
-          : 'No recent activities'
+        mattersSummary: `${matters.total} active matters (${matters.critical} critical), ${matters.avg_burn_rate}% avg burn rate`,
+        inertiaSummary: `${inertia.attorneys_with_unbilled} attorneys with unbilled time: ${inertia.total_unbilled_hours} hours (R${Number(inertia.total_unbilled_amount || 0).toLocaleString()} at risk)`,
+        inertiaDetails: `Top attorneys with oldest unbilled time: ${inertiaDetails}`,
+        workloadSummary: `${workload.total_attorneys} attorneys, averaging ${workload.avg_hours_logged} hours logged this month`,
+        revenueSummary: `Last 30 days: R${Number(revenue.total_revenue || 0).toLocaleString()} revenue from ${revenue.total_hours} billable hours`,
+        firmId
       };
     } catch (error) {
       console.error('Error gathering context:', error);
       return {
-        companiesSummary: 'N/A',
-        contactsSummary: 'N/A',
-        dealsSummary: 'N/A',
-        transactionsSummary: 'N/A',
-        activitiesSummary: 'N/A'
+        mattersSummary: 'Data unavailable',
+        inertiaSummary: 'Data unavailable',
+        workloadSummary: 'Data unavailable',
+        revenueSummary: 'Data unavailable'
       };
     }
   }
@@ -205,27 +246,28 @@ export class AssistantService {
    * Build system prompt with user context
    */
   private static buildSystemPrompt(context: any): string {
-    return `You are an intelligent business assistant for a CRM and financial management system.
+    return `You are Nexus, an AI-powered legal practice intelligence system for law firms.
 
-Current user's data summary:
-- Companies: ${context.companiesSummary}
-- Contacts: ${context.contactsSummary}
-- Deals: ${context.dealsSummary}
-- Transactions: ${context.transactionsSummary}
-- Recent Activities: ${context.activitiesSummary}
+Current firm's data summary:
+- Matters: ${context.mattersSummary}
+- Billing Inertia: ${context.inertiaSummary}
+- Billing Inertia Details: ${context.inertiaDetails}
+- Attorney Workload: ${context.workloadSummary}
+- Revenue: ${context.revenueSummary}
 
 Your role:
-- Answer questions about the user's CRM data, sales pipeline, and financial transactions
-- Provide insights and recommendations based on their data
-- Help with tasks like finding top customers, analyzing spending, forecasting revenue
-- Be concise, friendly, and actionable in your responses
-- If data is not available, acknowledge it and suggest what the user can do
+- Analyze matter health, burn rates, and budget utilization
+- Identify billing inertia and revenue at risk from unbilled time
+- Monitor attorney capacity and workload distribution
+- Provide data-driven insights on practice performance
+- Recommend actions to improve matter profitability and attorney utilization
 
 Guidelines:
 - Keep responses under 100 words when possible
 - Use bullet points for lists
-- Include specific numbers from the data when relevant
-- Suggest next actions when appropriate`;
+- Include specific metrics and numbers from the data
+- Focus on actionable recommendations with measurable impact
+- Be professional and data-driven in all responses`;
   }
 
   /**
@@ -235,20 +277,23 @@ Guidelines:
     const suggestions: string[] = [];
 
     // Context-aware suggestions
-    if (userMessage.toLowerCase().includes('revenue') || userMessage.toLowerCase().includes('sales')) {
-      suggestions.push('Show me top performing deals');
-      suggestions.push('What\'s my sales forecast?');
-    } else if (userMessage.toLowerCase().includes('expense') || userMessage.toLowerCase().includes('spending')) {
-      suggestions.push('Which category am I spending most on?');
-      suggestions.push('Show my cash flow trends');
-    } else if (userMessage.toLowerCase().includes('customer') || userMessage.toLowerCase().includes('contact')) {
-      suggestions.push('Who are my most engaged customers?');
-      suggestions.push('Show recent customer activities');
+    if (userMessage.toLowerCase().includes('matter') || userMessage.toLowerCase().includes('burn')) {
+      suggestions.push('Which matters are at critical burn rate?');
+      suggestions.push('Show matter health summary');
+    } else if (userMessage.toLowerCase().includes('billing') || userMessage.toLowerCase().includes('unbilled')) {
+      suggestions.push('Analyze billing inertia and revenue at risk');
+      suggestions.push('Who has the oldest unbilled time?');
+    } else if (userMessage.toLowerCase().includes('attorney') || userMessage.toLowerCase().includes('workload')) {
+      suggestions.push('Show attorney utilization and capacity');
+      suggestions.push('Which attorneys are overworked?');
+    } else if (userMessage.toLowerCase().includes('revenue') || userMessage.toLowerCase().includes('performance')) {
+      suggestions.push('Show top fee earners this month');
+      suggestions.push('Analyze practice area performance');
     } else {
       // Default suggestions
-      suggestions.push('Show me key metrics');
-      suggestions.push('What should I focus on today?');
-      suggestions.push('Analyze my spending patterns');
+      suggestions.push('Analyze billing inertia and unbilled time');
+      suggestions.push('Review matter health and burn rates');
+      suggestions.push('Show attorney workload distribution');
     }
 
     return suggestions.slice(0, 3);

@@ -44,8 +44,27 @@ const Companies: React.FC = () => {
     handleCloseForm();
   };
 
+  const handleView = (company: Company) => {
+    window.location.href = `/companies/${company.id}`;
+  };
+
   const columns = [
-    { key: 'name', label: 'Company Name' },
+    {
+      key: 'name',
+      label: 'Company Name',
+      render: (_: any, row: Company) => (
+        <a
+          href={`/companies/${row.id}`}
+          style={{ color: '#007bff', textDecoration: 'none', fontWeight: 500 }}
+          onClick={(e) => {
+            e.preventDefault();
+            handleView(row);
+          }}
+        >
+          {row.name}
+        </a>
+      ),
+    },
     { key: 'industry', label: 'Industry' },
     { key: 'website', label: 'Website' },
     { key: 'phone', label: 'Phone' },
@@ -61,9 +80,14 @@ const Companies: React.FC = () => {
       key: 'actions',
       label: 'Actions',
       render: (_: any, row: Company) => (
-        <Button size="small" onClick={() => handleEdit(row)}>
-          Edit
-        </Button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Button size="small" variant="secondary" onClick={() => handleView(row)}>
+            View
+          </Button>
+          <Button size="small" onClick={() => handleEdit(row)}>
+            Edit
+          </Button>
+        </div>
       ),
     },
   ];

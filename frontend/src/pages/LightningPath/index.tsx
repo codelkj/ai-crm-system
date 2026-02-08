@@ -228,7 +228,7 @@ const LightningPath: React.FC = () => {
                         <div className="meta-row">
                           <span className="meta-label">Budget:</span>
                           <span className="meta-value">
-                            {matter.actual_hours.toFixed(1)} / {matter.budget_hours} hrs
+                            {Number(matter.actual_hours || 0).toFixed(2)} / {matter.budget_hours} hrs
                           </span>
                         </div>
                       )}
@@ -252,11 +252,11 @@ const LightningPath: React.FC = () => {
                       <span className="matter-date">
                         {new Date(matter.opened_date || matter.created_at).toLocaleDateString()}
                       </span>
-                      {matter.burn_rate > 0 && (
+                      {Number(matter.burn_rate || 0) > 0 && (
                         <span className="burn-rate" style={{
-                          color: matter.burn_rate >= 95 ? '#ef4444' : matter.burn_rate >= 80 ? '#f59e0b' : '#10b981'
+                          color: Number(matter.burn_rate || 0) >= 95 ? '#ef4444' : Number(matter.burn_rate || 0) >= 80 ? '#f59e0b' : '#10b981'
                         }}>
-                          {matter.burn_rate.toFixed(0)}% burn
+                          {Number(matter.burn_rate || 0).toFixed(2)}% burn
                         </span>
                       )}
                     </div>

@@ -54,7 +54,7 @@ const TermsTable: React.FC<TermsTableProps> = ({ terms }) => {
                         }}
                       ></div>
                       <span className="confidence-value">
-                        {(term.confidence_score * 100).toFixed(0)}%
+                        {(term.confidence_score * 100).toFixed(2)}%
                       </span>
                     </div>
                   </td>

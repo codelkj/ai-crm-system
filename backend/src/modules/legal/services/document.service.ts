@@ -25,8 +25,13 @@ async function initializeDocuments() {
   if (initialized) return;
 
   try {
-    const companies = await CompanyService.getAll(1, 10);
-    const deals = await DealService.getAll(1, 20);
+    // Skip mock data initialization - using real database
+    initialized = true;
+    return;
+
+    // Legacy mock data initialization (disabled)
+    // const companies = await CompanyService.getAll(firmId, 1, 10);
+    // const deals = await DealService.getAll(firmId, 1, 20);
 
     if (companies.data.length >= 3 && deals.data.length >= 5) {
       // Document 1: Master Services Agreement

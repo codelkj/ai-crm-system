@@ -21,7 +21,7 @@ export class CompanyService {
 
     const result = await pool.query(
       `SELECT c.*,
-        u.name as primary_director_name,
+        CONCAT(u.first_name, ' ', u.last_name) as primary_director_name,
         d.name as department_name
        FROM companies c
        LEFT JOIN users u ON c.primary_director_id = u.id
@@ -49,7 +49,7 @@ export class CompanyService {
   static async getById(id: string): Promise<Company> {
     const result = await pool.query(
       `SELECT c.*,
-        u.name as primary_director_name,
+        CONCAT(u.first_name, ' ', u.last_name) as primary_director_name,
         d.name as department_name,
         d.code as department_code
        FROM companies c

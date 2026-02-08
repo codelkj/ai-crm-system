@@ -114,7 +114,7 @@ const MatterView: React.FC = () => {
   }
 
   const budgetUsedPercent = matter.budget_amount
-    ? (matter.actual_amount / matter.budget_amount) * 100
+    ? (Number(matter.actual_amount || 0) / Number(matter.budget_amount || 1)) * 100
     : 0;
 
   return (
@@ -214,7 +214,7 @@ const MatterView: React.FC = () => {
             </div>
             <div className="budget-item">
               <label>Actual Hours:</label>
-              <span className="budget-value">{matter.actual_hours.toFixed(2)}h</span>
+              <span className="budget-value">{Number(matter.actual_hours || 0).toFixed(2)}h</span>
             </div>
           </div>
 
@@ -223,7 +223,7 @@ const MatterView: React.FC = () => {
               <div className="progress-header">
                 <span>Budget Utilization</span>
                 <span className={budgetUsedPercent > 90 ? 'warning' : ''}>
-                  {budgetUsedPercent.toFixed(1)}%
+                  {budgetUsedPercent.toFixed(2)}%
                 </span>
               </div>
               <div className="progress-bar">

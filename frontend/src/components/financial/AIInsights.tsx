@@ -142,7 +142,7 @@ const AIInsights: React.FC<AIInsightsProps> = ({ transactions, categories }) => 
               </div>
             </div>
             <div style={{ fontSize: '13px', color: '#666' }}>
-              Average AI Confidence: <strong>{(avgConfidence * 100).toFixed(1)}%</strong>
+              Average AI Confidence: <strong>{(avgConfidence * 100).toFixed(2)}%</strong>
             </div>
           </div>
         )}
@@ -197,7 +197,7 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, percentage, color, ic
       {value}
     </div>
     <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>{label}</div>
-    <div style={{ fontSize: '12px', fontWeight: 600, color: color }}>{percentage.toFixed(1)}%</div>
+    <div style={{ fontSize: '12px', fontWeight: 600, color: color }}>{percentage.toFixed(2)}%</div>
   </div>
 );
 

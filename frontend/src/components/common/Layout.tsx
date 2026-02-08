@@ -36,6 +36,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/time-tracking/timesheet', label: 'Time Tracking', icon: '⏱' },
     { path: '/invoicing/invoices', label: 'Invoicing', icon: '📋' },
     { path: '/financials', label: 'Financials', icon: '💵' },
+    { path: '/reporting', label: 'Reporting', icon: '📈' },
   ];
 
   return (

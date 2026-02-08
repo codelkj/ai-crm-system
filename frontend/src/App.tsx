@@ -13,6 +13,7 @@ import PrivateRoute from './components/common/PrivateRoute';
 // Pages
 import Dashboard from './pages/Dashboard';
 import Companies from './pages/Companies';
+import CompanyDetail from './pages/Companies/CompanyDetail';
 import Contacts from './pages/Contacts';
 import SalesPipeline from './pages/SalesPipeline';
 import LegalDocuments from './pages/LegalDocuments';
@@ -31,6 +32,7 @@ import MatterForm from './pages/Matters/MatterForm';
 import DepartmentManagement from './pages/Settings/DepartmentManagement';
 import RoleManagement from './pages/Settings/RoleManagement';
 import AuditLogs from './pages/AuditLogs';
+import ReportingDashboard from './pages/LegalNexus/ReportingDashboard';
 import Login from './pages/Login';
 
 function App() {
@@ -53,6 +55,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <Companies />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/companies/:id"
+              element={
+                <PrivateRoute>
+                  <CompanyDetail />
                 </PrivateRoute>
               }
             />
@@ -213,6 +223,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <AuditLogs />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/reporting"
+              element={
+                <PrivateRoute>
+                  <ReportingDashboard />
                 </PrivateRoute>
               }
             />
