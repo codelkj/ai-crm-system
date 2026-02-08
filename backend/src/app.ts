@@ -18,6 +18,11 @@ import salesRoutes from './modules/sales/routes/sales.routes';
 import legalRoutes from './modules/legal/routes/legal.routes';
 import financialRoutes from './modules/financial/routes/financial.routes';
 import aiAssistantRoutes from './modules/ai-assistant/routes/assistant.routes';
+import legalCrmRoutes from './modules/legal-crm/routes/legal-crm.routes';
+import invoicingRoutes from './modules/invoicing/routes/invoicing.routes';
+import timeTrackingRoutes from './modules/time-tracking/routes/time-tracking.routes';
+import mattersRoutes from './modules/sales/routes/matters.routes';
+import aiRoutes from './modules/ai/routes/ai.routes';
 
 const app = express();
 
@@ -53,7 +58,13 @@ app.get('/', (req, res) => {
       sales: '/api/v1/sales',
       legal: '/api/v1/legal',
       financial: '/api/v1/financial',
-      aiAssistant: '/api/v1/ai-assistant'
+      aiAssistant: '/api/v1/ai-assistant',
+      legalCrm: '/api/v1/legal-crm',
+      invoicing: '/api/v1/invoicing',
+      timeTracking: '/api/v1/time-tracking',
+      matters: '/api/v1/matters',
+      lightningPath: '/api/v1/matters/lightning-path',
+      aiInsights: '/api/v1/ai'
     },
     documentation: {
       swagger: '/api/v1/docs',
@@ -104,6 +115,11 @@ app.use('/api/v1/sales', salesRoutes);
 app.use('/api/v1/legal', legalRoutes);
 app.use('/api/v1/financial', financialRoutes);
 app.use('/api/v1/ai-assistant', aiAssistantRoutes);
+app.use('/api/v1/legal-crm', legalCrmRoutes);
+app.use('/api/v1/invoicing', invoicingRoutes);
+app.use('/api/v1/time-tracking', timeTrackingRoutes);
+app.use('/api/v1/matters', mattersRoutes);
+app.use('/api/v1/ai', aiRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);
