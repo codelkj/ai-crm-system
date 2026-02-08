@@ -3,13 +3,13 @@
  * Handles scheduled tasks like billing inertia alerts
  */
 
-import cron from 'node-cron';
+import cron, { ScheduledTask } from 'node-cron';
 import emailService from './email.service';
 import reportingService from '../../modules/reporting/services/reporting.service';
 import { database as pool } from '../../config';
 
 class SchedulerService {
-  private jobs: Map<string, cron.ScheduledTask> = new Map();
+  private jobs: Map<string, ScheduledTask> = new Map();
 
   /**
    * Initialize all scheduled jobs
