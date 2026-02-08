@@ -1,0 +1,381 @@
+/* Contract Analysis Dashboard Styles */
+
+.contract-dashboard {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  background: linear-gradient(135deg, #4a00e0 0%, #8e2de2 100%);
+  color: white;
+}
+
+.header-left h2 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.document-subtitle {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.btn-regenerate {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-regenerate:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.dashboard-body {
+  padding: 32px;
+}
+
+/* Loading & Error States */
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #8e2de2;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.btn-retry {
+  background: #8e2de2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: all 0.2s;
+}
+
+.btn-retry:hover {
+  background: #7925c7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(142, 45, 226, 0.3);
+}
+
+/* Risk Score Card */
+.risk-score-card {
+  text-align: center;
+  padding: 32px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+  margin-bottom: 32px;
+}
+
+.risk-score-circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.risk-score-inner {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.risk-score-value {
+  font-size: 48px;
+  font-weight: 900;
+  color: #333;
+}
+
+.risk-score-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.confidence-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+}
+
+/* Analysis Sections */
+.analysis-section {
+  margin-bottom: 32px;
+}
+
+.analysis-section h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 3px solid #8e2de2;
+}
+
+/* Parties */
+.parties-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.party-card {
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.party-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.party-role {
+  font-size: 14px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* Key Terms */
+.terms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.term-item {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #8e2de2;
+}
+
+.term-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.term-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Obligations */
+.obligations-list {
+  display: grid;
+  gap: 16px;
+}
+
+.obligation-card {
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.obligation-party {
+  font-size: 13px;
+  font-weight: 700;
+  color: #667eea;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.obligation-text {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.obligation-deadline {
+  font-size: 13px;
+  color: #ff9800;
+  font-weight: 600;
+}
+
+/* Risks */
+.risks-list {
+  display: grid;
+  gap: 16px;
+}
+
+.risk-card {
+  padding: 16px 20px;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.risk-card.severity-high {
+  background: #fff5f5;
+  border-left-color: #dc3545;
+}
+
+.risk-card.severity-medium {
+  background: #fff8f0;
+  border-left-color: #ff9800;
+}
+
+.risk-card.severity-low {
+  background: #f0fff4;
+  border-left-color: #28a745;
+}
+
+.risk-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.risk-severity-icon {
+  font-size: 18px;
+}
+
+.risk-severity {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.5px;
+}
+
+.risk-category {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  text-transform: capitalize;
+}
+
+.risk-description {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Unusual Clauses */
+.unusual-clauses-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.unusual-clauses-list li {
+  padding: 16px 20px;
+  background: #fff3cd;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: #856404;
+  line-height: 1.6;
+  border-left: 4px solid #ffc107;
+  position: relative;
+  padding-left: 50px;
+}
+
+.unusual-clauses-list li::before {
+  content: '🚩';
+  position: absolute;
+  left: 20px;
+  font-size: 20px;
+}
+
+/* Recommendations */
+.recommendations-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recommendations-list li {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #11998e15 0%, #38ef7d15 100%);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: #333;
+  line-height: 1.6;
+  border-left: 4px solid #11998e;
+  position: relative;
+  padding-left: 50px;
+}
+
+.recommendations-list li::before {
+  content: '💡';
+  position: absolute;
+  left: 20px;
+  font-size: 20px;
+}
+
+/* Footer */
+.dashboard-footer {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 2px solid #e0e0e0;
+  text-align: center;
+}
+
+.dashboard-footer small {
+  color: #999;
+  font-size: 13px;
+}
