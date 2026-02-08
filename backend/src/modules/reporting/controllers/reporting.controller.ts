@@ -4,6 +4,8 @@
 
 import { Request, Response } from 'express';
 import reportingService from '../services/reporting.service';
+import { PDFExportService } from '../services/pdf-export.service';
+import cacheService from '../../../shared/services/cache.service';
 
 class ReportingController {
   /**
@@ -199,7 +201,13 @@ class ReportingController {
         return;
       }
 
-      const summary = await reportingService.getExecutiveSummary(firmId, period);
+      // Use cache with 5-minute TTL
+      const cacheKey = `firm:${firmId}:executive-summary:${period}`;
+      const summary = await cacheService.getOrSet(
+        cacheKey,
+        () => reportingService.getExecutiveSummary(firmId, period),
+        300 // 5 minutes
+      );
 
       res.json({
         success: true,
@@ -207,7 +215,8 @@ class ReportingController {
         meta: {
           period,
           generated_at: new Date().toISOString(),
-          soul_logic_enabled: true
+          soul_logic_enabled: true,
+          cached: await cacheService.exists(cacheKey)
         }
       });
     } catch (error: any) {
@@ -215,6 +224,125 @@ class ReportingController {
       res.status(500).json({
         success: false,
         message: 'Failed to generate executive summary'
+      });
+    }
+  }
+
+  // ==================== PDF EXPORT ENDPOINTS ====================
+
+  /**
+   * Export Fee Earner Rankings as PDF
+   * GET /api/v1/reporting/fee-earners/export-pdf
+   */
+  async exportFeeEarnersPDF(req: Request, res: Response) {
+    try {
+      const firmId = req.user?.firm_id;
+      const period = (req.query.period as 'month' | 'quarter' | 'year') || 'month';
+
+      if (!firmId) {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return;
+      }
+
+      const rankings = await reportingService.getFeeEarnerRankings(firmId, period);
+      const meta = {
+        period,
+        total_attorneys: rankings.length,
+        generated_at: new Date().toISOString()
+      };
+
+      await PDFExportService.exportFeeEarnerRankings(res, rankings, meta, req.user?.firm_name);
+    } catch (error: any) {
+      console.error('PDF export error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export PDF'
+      });
+    }
+  }
+
+  /**
+   * Export Practice Area Analytics as PDF
+   * GET /api/v1/reporting/practice-areas/export-pdf
+   */
+  async exportPracticeAreasPDF(req: Request, res: Response) {
+    try {
+      const firmId = req.user?.firm_id;
+      const period = (req.query.period as 'month' | 'quarter' | 'year') || 'month';
+
+      if (!firmId) {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return;
+      }
+
+      const analytics = await reportingService.getPracticeAreaAnalytics(firmId, period);
+      const meta = {
+        period,
+        total_departments: analytics.length,
+        generated_at: new Date().toISOString()
+      };
+
+      await PDFExportService.exportPracticeAreaAnalytics(res, analytics, meta, req.user?.firm_name);
+    } catch (error: any) {
+      console.error('PDF export error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export PDF'
+      });
+    }
+  }
+
+  /**
+   * Export Billing Inertia as PDF
+   * GET /api/v1/reporting/billing-inertia/export-pdf
+   */
+  async exportBillingInertiaPDF(req: Request, res: Response) {
+    try {
+      const firmId = req.user?.firm_id;
+
+      if (!firmId) {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return;
+      }
+
+      const inertia = await reportingService.getBillingInertia(firmId);
+      const meta = {
+        total_attorneys: inertia.length,
+        generated_at: new Date().toISOString()
+      };
+
+      await PDFExportService.exportBillingInertia(res, inertia, meta, req.user?.firm_name);
+    } catch (error: any) {
+      console.error('PDF export error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export PDF'
+      });
+    }
+  }
+
+  /**
+   * Export Executive Summary as PDF
+   * GET /api/v1/reporting/executive-summary/export-pdf
+   */
+  async exportExecutiveSummaryPDF(req: Request, res: Response) {
+    try {
+      const firmId = req.user?.firm_id;
+      const period = (req.query.period as 'month' | 'quarter' | 'year') || 'month';
+
+      if (!firmId) {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return;
+      }
+
+      const summary = await reportingService.getExecutiveSummary(firmId, period);
+
+      await PDFExportService.exportExecutiveSummary(res, summary, req.user?.firm_name);
+    } catch (error: any) {
+      console.error('PDF export error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export PDF'
       });
     }
   }

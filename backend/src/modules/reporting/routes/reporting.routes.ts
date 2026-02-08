@@ -47,4 +47,30 @@ router.get('/practice-velocity', reportingController.getPracticeVelocity);
  */
 router.get('/executive-summary', reportingController.getExecutiveSummary);
 
+// ==================== PDF EXPORT ROUTES ====================
+
+/**
+ * Export Fee Earner Rankings as PDF
+ * GET /api/v1/reporting/fee-earners/export-pdf?period=month|quarter|year
+ */
+router.get('/fee-earners/export-pdf', reportingController.exportFeeEarnersPDF);
+
+/**
+ * Export Practice Area Analytics as PDF
+ * GET /api/v1/reporting/practice-areas/export-pdf?period=month|quarter|year
+ */
+router.get('/practice-areas/export-pdf', reportingController.exportPracticeAreasPDF);
+
+/**
+ * Export Billing Inertia as PDF
+ * GET /api/v1/reporting/billing-inertia/export-pdf
+ */
+router.get('/billing-inertia/export-pdf', reportingController.exportBillingInertiaPDF);
+
+/**
+ * Export Executive Summary as PDF
+ * GET /api/v1/reporting/executive-summary/export-pdf?period=month|quarter|year
+ */
+router.get('/executive-summary/export-pdf', reportingController.exportExecutiveSummaryPDF);
+
 export default router;

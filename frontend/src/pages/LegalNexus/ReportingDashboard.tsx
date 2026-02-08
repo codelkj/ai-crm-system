@@ -4,6 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import Layout from '../../components/common/Layout';
 import Loading from '../../components/common/Loading';
 import reportingService, {
@@ -16,11 +18,15 @@ import reportingService, {
 import './ReportingDashboard.css';
 
 type TabType = 'overview' | 'fee-earners' | 'practice-areas' | 'workload' | 'inertia';
-type PeriodType = 'month' | 'quarter' | 'year';
+type PeriodType = 'month' | 'quarter' | 'year' | 'custom';
+type FilterMode = 'period' | 'custom';
 
 const ReportingDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [period, setPeriod] = useState<PeriodType>('month');
+  const [filterMode, setFilterMode] = useState<FilterMode>('period');
+  const [startDate, setStartDate] = useState<Date>(new Date(new Date().setMonth(new Date().getMonth() - 1)));
+  const [endDate, setEndDate] = useState<Date>(new Date());
   const [loading, setLoading] = useState(true);
 
   const [executiveSummary, setExecutiveSummary] = useState<ExecutiveSummary | null>(null);
@@ -74,6 +80,51 @@ const ReportingDashboard: React.FC = () => {
     }
   };
 
+  const exportPDF = async (reportType: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      let url = '';
+
+      switch (reportType) {
+        case 'fee-earners':
+          url = `http://localhost:3000/api/v1/reporting/fee-earners/export-pdf?period=${period}`;
+          break;
+        case 'practice-areas':
+          url = `http://localhost:3000/api/v1/reporting/practice-areas/export-pdf?period=${period}`;
+          break;
+        case 'billing-inertia':
+          url = `http://localhost:3000/api/v1/reporting/billing-inertia/export-pdf`;
+          break;
+        case 'executive-summary':
+          url = `http://localhost:3000/api/v1/reporting/executive-summary/export-pdf?period=${period}`;
+          break;
+        default:
+          return;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error('PDF export failed');
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `${reportType}-${period}-${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('PDF export error:', error);
+      alert('Failed to export PDF. Please try again.');
+    }
+  };
+
   return (
     <Layout>
       <div className="legalnexus-reporting">
@@ -85,24 +136,59 @@ const ReportingDashboard: React.FC = () => {
           </div>
           <div className="period-selector">
             <button
-              className={period === 'month' ? 'active' : ''}
-              onClick={() => setPeriod('month')}
+              className={filterMode === 'period' && period === 'month' ? 'active' : ''}
+              onClick={() => { setFilterMode('period'); setPeriod('month'); }}
             >
               Month
             </button>
             <button
-              className={period === 'quarter' ? 'active' : ''}
-              onClick={() => setPeriod('quarter')}
+              className={filterMode === 'period' && period === 'quarter' ? 'active' : ''}
+              onClick={() => { setFilterMode('period'); setPeriod('quarter'); }}
             >
               Quarter
             </button>
             <button
-              className={period === 'year' ? 'active' : ''}
-              onClick={() => setPeriod('year')}
+              className={filterMode === 'period' && period === 'year' ? 'active' : ''}
+              onClick={() => { setFilterMode('period'); setPeriod('year'); }}
             >
               Year
             </button>
+            <button
+              className={filterMode === 'custom' ? 'active' : ''}
+              onClick={() => setFilterMode('custom')}
+            >
+              📅 Custom Range
+            </button>
           </div>
+          {filterMode === 'custom' && (
+            <div className="date-range-picker">
+              <div className="date-input-group">
+                <label>From:</label>
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date) => date && setStartDate(date)}
+                  selectsStart
+                  startDate={startDate}
+                  endDate={endDate}
+                  dateFormat="yyyy-MM-dd"
+                  className="date-input"
+                />
+              </div>
+              <div className="date-input-group">
+                <label>To:</label>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => date && setEndDate(date)}
+                  selectsEnd
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={startDate}
+                  dateFormat="yyyy-MM-dd"
+                  className="date-input"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tab Navigation */}
@@ -148,6 +234,19 @@ const ReportingDashboard: React.FC = () => {
               {/* Overview Tab */}
               {activeTab === 'overview' && executiveSummary && (
                 <div className="overview-tab">
+                  <div className="tab-header" style={{ marginBottom: '20px' }}>
+                    <div>
+                      <h2>📊 Executive Summary</h2>
+                      <p>Firm performance overview ({period})</p>
+                    </div>
+                    <button
+                      className="export-pdf-btn"
+                      onClick={() => exportPDF('executive-summary')}
+                    >
+                      📄 Export PDF
+                    </button>
+                  </div>
+
                   {/* Soul Logic Score */}
                   <div className="soul-logic-card">
                     <h2>🧠 Soul Logic Score</h2>
@@ -247,8 +346,16 @@ const ReportingDashboard: React.FC = () => {
               {activeTab === 'fee-earners' && (
                 <div className="fee-earners-tab">
                   <div className="tab-header">
-                    <h2>👤 Fee Earner Rankings</h2>
-                    <p>Revenue generated by attorneys ({period})</p>
+                    <div>
+                      <h2>👤 Fee Earner Rankings</h2>
+                      <p>Revenue generated by attorneys ({period})</p>
+                    </div>
+                    <button
+                      className="export-pdf-btn"
+                      onClick={() => exportPDF('fee-earners')}
+                    >
+                      📄 Export PDF
+                    </button>
                   </div>
                   <div className="table-container">
                     <table className="fee-earners-table">
@@ -294,8 +401,16 @@ const ReportingDashboard: React.FC = () => {
               {activeTab === 'practice-areas' && (
                 <div className="practice-areas-tab">
                   <div className="tab-header">
-                    <h2>🏛️ Practice Area Analytics</h2>
-                    <p>Performance by department ({period})</p>
+                    <div>
+                      <h2>🏛️ Practice Area Analytics</h2>
+                      <p>Performance by department ({period})</p>
+                    </div>
+                    <button
+                      className="export-pdf-btn"
+                      onClick={() => exportPDF('practice-areas')}
+                    >
+                      📄 Export PDF
+                    </button>
                   </div>
                   {practiceAreas.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '40px', color: '#6c757d' }}>
@@ -403,8 +518,16 @@ const ReportingDashboard: React.FC = () => {
               {activeTab === 'inertia' && (
                 <div className="inertia-tab">
                   <div className="tab-header">
-                    <h2>⚠️ Billing Inertia Detection</h2>
-                    <p>Unbilled time and revenue at risk</p>
+                    <div>
+                      <h2>⚠️ Billing Inertia Detection</h2>
+                      <p>Unbilled time and revenue at risk</p>
+                    </div>
+                    <button
+                      className="export-pdf-btn"
+                      onClick={() => exportPDF('billing-inertia')}
+                    >
+                      📄 Export PDF
+                    </button>
                   </div>
                   {inertia.length === 0 ? (
                     <div className="empty-state">
