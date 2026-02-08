@@ -1,0 +1,110 @@
+/* Invoice Status Badge Styles */
+
+.invoice-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  white-space: nowrap;
+}
+
+.invoice-status-badge--small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.invoice-status-badge--medium {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.invoice-status-badge--large {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+/* Status: Paid (Green) */
+.status-paid {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-paid .invoice-status-badge__icon {
+  color: #059669;
+}
+
+/* Status: Sent (Blue) */
+.status-sent {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.status-sent .invoice-status-badge__icon {
+  color: #3b82f6;
+}
+
+/* Status: Viewed (Light Blue) */
+.status-viewed {
+  background-color: #e0f2fe;
+  color: #075985;
+}
+
+.status-viewed .invoice-status-badge__icon {
+  color: #0284c7;
+}
+
+/* Status: Overdue (Red) */
+.status-overdue {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-overdue .invoice-status-badge__icon {
+  color: #dc2626;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Status: Cancelled (Gray) */
+.status-cancelled {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  text-decoration: line-through;
+}
+
+.status-cancelled .invoice-status-badge__icon {
+  color: #9ca3af;
+}
+
+/* Status: Draft (Yellow) */
+.status-draft {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-draft .invoice-status-badge__icon {
+  color: #d97706;
+}
+
+.invoice-status-badge__icon {
+  font-size: 1em;
+}
+
+.invoice-status-badge__label {
+  font-weight: 500;
+}
