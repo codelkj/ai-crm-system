@@ -30,7 +30,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/companies', label: 'Companies', icon: '🏢' },
     { path: '/contacts', label: 'Contacts', icon: '👥' },
     { path: '/sales', label: 'Sales Pipeline', icon: '💰' },
+    { path: '/lightning-path', label: 'Lightning Path', icon: '⚡' },
+    { path: '/matters', label: 'Matters', icon: '📁' },
     { path: '/legal', label: 'Legal Documents', icon: '📄' },
+    { path: '/time-tracking/timesheet', label: 'Time Tracking', icon: '⏱' },
+    { path: '/invoicing/invoices', label: 'Invoicing', icon: '📋' },
     { path: '/financials', label: 'Financials', icon: '💵' },
   ];
 
@@ -49,16 +53,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
 
         <nav className="sidebar-nav">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-            >
-              <span className="nav-icon">{item.icon}</span>
-              {sidebarOpen && <span className="nav-label">{item.label}</span>}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isActive =
+              location.pathname === item.path ||
+              (item.path !== '/' && location.pathname.startsWith(item.path));
+
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`nav-item ${isActive ? 'active' : ''}`}
+              >
+                <span className="nav-icon">{item.icon}</span>
+                {sidebarOpen && <span className="nav-label">{item.label}</span>}
+              </Link>
+            );
+          })}
         </nav>
 
         {sidebarOpen && (

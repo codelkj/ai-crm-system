@@ -12,6 +12,8 @@ import { fetchTransactions } from '../../store/slices/financialSlice';
 import Layout from '../../components/common/Layout';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
+import IntakeClassifier from '../../components/ai/IntakeClassifier';
+import { IntakeClassification } from '../../services/ai.service';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
@@ -55,10 +57,21 @@ const Dashboard: React.FC = () => {
   const recentCompanies = companies.slice(0, 5);
   const recentTransactions = transactions.slice(0, 5);
 
+  const handleClassificationComplete = (classification: IntakeClassification) => {
+    console.log('Classification completed:', classification);
+    // You can add navigation or other actions here
+    // navigate('/lightning-path');
+  };
+
   return (
     <Layout>
       <div className="dashboard">
         <h1>Dashboard</h1>
+
+        {/* AI Intake Classifier */}
+        <div className="ai-intake-section">
+          <IntakeClassifier onClassificationComplete={handleClassificationComplete} />
+        </div>
 
         <div className="metrics-grid">
           <Card className="metric-card" onClick={() => navigate('/companies')}>
