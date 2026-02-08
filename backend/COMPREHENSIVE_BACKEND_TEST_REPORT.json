@@ -1,0 +1,201 @@
+{
+  "authentication": [
+    {
+      "test": "Database: Check existing users",
+      "status": "PASS",
+      "details": "Found 1 users: admin@example.com",
+      "timestamp": "2026-02-08T05:37:02.414Z"
+    },
+    {
+      "test": "Login with admin@example.com",
+      "status": "PASS",
+      "details": "Token received, User: admin@example.com",
+      "timestamp": "2026-02-08T05:37:02.560Z"
+    },
+    {
+      "test": "Get current user (/auth/me)",
+      "status": "PASS",
+      "details": "User: undefined, Role: undefined",
+      "timestamp": "2026-02-08T05:37:02.566Z"
+    }
+  ],
+  "invoicing": [
+    {
+      "test": "Database: Check invoicing tables",
+      "status": "PASS",
+      "details": "Tables found: invoice_line_items, invoices",
+      "timestamp": "2026-02-08T05:37:02.578Z"
+    },
+    {
+      "test": "Database: Get test company/client",
+      "status": "PASS",
+      "details": "Company ID: e11319fb-1adb-4691-94d2-f00d245173a5",
+      "timestamp": "2026-02-08T05:37:02.583Z"
+    },
+    {
+      "test": "Create invoice with line items",
+      "status": "PASS",
+      "details": "Invoice undefined created, Total: $undefined",
+      "timestamp": "2026-02-08T05:37:02.607Z"
+    },
+    {
+      "test": "List all invoices",
+      "status": "FAIL",
+      "details": "{\"error\":{\"code\":\"INTERNAL_SERVER_ERROR\",\"message\":\"An unexpected error occurred\"}}",
+      "timestamp": "2026-02-08T05:37:02.637Z"
+    }
+  ],
+  "timeTracking": [
+    {
+      "test": "Database: Check time tracking tables",
+      "status": "PASS",
+      "details": "Tables found: billing_pack_entries, billing_packs, time_entries",
+      "timestamp": "2026-02-08T05:37:02.642Z"
+    },
+    {
+      "test": "Database: Get test matter",
+      "status": "PASS",
+      "details": "Matter ID: 75cabfec-c4ef-4669-ac21-733c76588a04",
+      "timestamp": "2026-02-08T05:37:02.646Z"
+    },
+    {
+      "test": "Create time entry",
+      "status": "FAIL",
+      "details": "{\"error\":\"null value in column \\\"entry_date\\\" of relation \\\"time_entries\\\" violates not-null constraint\"}",
+      "timestamp": "2026-02-08T05:37:02.658Z"
+    },
+    {
+      "test": "List time entries",
+      "status": "PASS",
+      "details": "Found 0 time entries",
+      "timestamp": "2026-02-08T05:37:02.695Z"
+    },
+    {
+      "test": "Generate billing pack",
+      "status": "FAIL",
+      "details": "{\"error\":\"null value in column \\\"client_id\\\" of relation \\\"billing_packs\\\" violates not-null constraint\"}",
+      "timestamp": "2026-02-08T05:37:02.707Z"
+    }
+  ],
+  "lightningPath": [
+    {
+      "test": "Database: Check matters tables",
+      "status": "PASS",
+      "details": "Tables found: deals, lightning_stages, matter_assignments, matter_services",
+      "timestamp": "2026-02-08T05:37:02.711Z"
+    },
+    {
+      "test": "List all matters",
+      "status": "PASS",
+      "details": "Found 15 matters",
+      "timestamp": "2026-02-08T05:37:02.766Z"
+    },
+    {
+      "test": "Create matter",
+      "status": "FAIL",
+      "details": "{\"success\":false,\"error\":\"column \\\"description\\\" of relation \\\"deals\\\" does not exist\"}",
+      "timestamp": "2026-02-08T05:37:02.807Z"
+    },
+    {
+      "test": "List Lightning Path stages",
+      "status": "FAIL",
+      "details": "{\"success\":false,\"error\":\"invalid input syntax for type uuid: \\\"lightning-path\\\"\"}",
+      "timestamp": "2026-02-08T05:37:02.815Z"
+    }
+  ],
+  "aiIntegration": [
+    {
+      "test": "Database: Check AI tables",
+      "status": "PASS",
+      "details": "Tables found: ",
+      "timestamp": "2026-02-08T05:37:02.819Z"
+    },
+    {
+      "test": "AI Assistant chat",
+      "status": "PASS",
+      "details": "Response received: undefined...",
+      "timestamp": "2026-02-08T05:37:05.523Z"
+    },
+    {
+      "test": "Sales pipeline AI insights",
+      "status": "PASS",
+      "details": "Insights generated: 0 recommendations",
+      "timestamp": "2026-02-08T05:37:13.010Z"
+    },
+    {
+      "test": "Document analysis",
+      "status": "FAIL",
+      "details": "\"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Cannot POST /api/v1/ai/analyze-document</pre>\\n</body>\\n</html>\\n\"",
+      "timestamp": "2026-02-08T05:37:13.014Z"
+    },
+    {
+      "test": "Quick insights generation",
+      "status": "PASS",
+      "details": "0 insights generated",
+      "timestamp": "2026-02-08T05:37:17.355Z"
+    }
+  ],
+  "documentRouting": [
+    {
+      "test": "Database: Check document routing tables",
+      "status": "PASS",
+      "details": "Tables found: ",
+      "timestamp": "2026-02-08T05:37:17.393Z"
+    },
+    {
+      "test": "List routing rules",
+      "status": "FAIL",
+      "details": "\"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Cannot GET /api/v1/legal-crm/document-routing/rules</pre>\\n</body>\\n</html>\\n\"",
+      "timestamp": "2026-02-08T05:37:17.395Z"
+    },
+    {
+      "test": "Create routing rule",
+      "status": "FAIL",
+      "details": "\"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Cannot POST /api/v1/legal-crm/document-routing/rules</pre>\\n</body>\\n</html>\\n\"",
+      "timestamp": "2026-02-08T05:37:17.397Z"
+    },
+    {
+      "test": "List document permissions",
+      "status": "FAIL",
+      "details": "\"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Cannot GET /api/v1/legal-crm/documents/permissions</pre>\\n</body>\\n</html>\\n\"",
+      "timestamp": "2026-02-08T05:37:17.399Z"
+    }
+  ],
+  "multiTenancy": [
+    {
+      "test": "Firm data isolation",
+      "status": "WARN",
+      "details": "Cannot test - only one firm exists",
+      "timestamp": "2026-02-08T05:37:17.403Z"
+    },
+    {
+      "test": "Check user role",
+      "status": "PASS",
+      "details": "Current user role: admin",
+      "timestamp": "2026-02-08T05:37:17.407Z"
+    },
+    {
+      "test": "RBAC: Non-admin blocked",
+      "status": "WARN",
+      "details": "Cannot test - current user is admin",
+      "timestamp": "2026-02-08T05:37:17.407Z"
+    },
+    {
+      "test": "Audit logging active",
+      "status": "PASS",
+      "details": "10 audit logs in last hour",
+      "timestamp": "2026-02-08T05:37:17.411Z"
+    },
+    {
+      "test": "JWT: Reject missing token",
+      "status": "PASS",
+      "details": "Endpoints correctly reject requests without token",
+      "timestamp": "2026-02-08T05:37:17.413Z"
+    }
+  ],
+  "summary": {
+    "passed": 19,
+    "failed": 9,
+    "warnings": 2
+  }
+}
