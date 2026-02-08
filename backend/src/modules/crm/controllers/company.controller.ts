@@ -7,6 +7,7 @@ import { validationResult } from 'express-validator';
 import { CompanyService } from '../services/company.service';
 import { CreateCompanyDTO } from '../types/crm.types';
 import { AppError, asyncHandler } from '../../../shared/middleware/error-handler';
+import { AuthRequest } from '../../../shared/middleware/authenticate';
 
 export class CompanyController {
   /**
@@ -48,12 +49,22 @@ export class CompanyController {
    *                 pagination:
    *                   type: object
    */
-  static getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  static getAll = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const firmId = req.user?.firm_id;
+    if (!firmId) {
+      throw new AppError(400, 'User not associated with any firm', 'NO_FIRM');
+    }
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const search = req.query.search as string;
 
-    const result = await CompanyService.getAll(page, limit, search);
+    let result;
+    if (search) {
+      result = await CompanyService.search(firmId, search, page, limit);
+    } else {
+      result = await CompanyService.getAll(firmId, page, limit);
+    }
 
     res.status(200).json(result);
   });
@@ -128,15 +139,20 @@ export class CompanyController {
    *       400:
    *         description: Validation error
    */
-  static create = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  static create = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
     // Validate input
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       throw new AppError(400, 'Validation failed', 'VALIDATION_ERROR', errors.array());
     }
 
+    const firmId = req.user?.firm_id;
+    if (!firmId) {
+      throw new AppError(400, 'User not associated with any firm', 'NO_FIRM');
+    }
+
     const data: CreateCompanyDTO = req.body;
-    const company = await CompanyService.create(data);
+    const company = await CompanyService.create({ ...data, firm_id: firmId });
 
     res.status(201).json({
       data: company,

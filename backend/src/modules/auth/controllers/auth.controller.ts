@@ -71,7 +71,13 @@ export class AuthController {
     }
 
     const data: RegisterDTO = req.body;
-    const result = await AuthService.register(data);
+    // Use default firm for now (in production, this would come from signup flow)
+    const defaultFirmId = '00000000-0000-0000-0000-000000000001';
+
+    const result = await AuthService.register({
+      ...data,
+      firm_id: data.firm_id || defaultFirmId
+    } as any);
 
     res.status(201).json({
       data: result,
@@ -131,7 +137,10 @@ export class AuthController {
     }
 
     const data: LoginDTO = req.body;
-    const result = await AuthService.login(data);
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+
+    const result = await AuthService.login(data, ipAddress, userAgent);
 
     res.status(200).json({
       data: result,
